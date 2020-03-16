@@ -85,6 +85,11 @@
           "timeToLiveSecs": 7200
         }
       }
+    },
+    "IotEdgeModuloCentral": {
+      "properties.desired": {
+        "TemperatureThreshold": 25
+      }
     }
   }
 }

@@ -36,7 +36,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "localhost:5000/iotedgemodulocentral:0.0.1-arm32v7",
+              "image": "peneluc/iotedgemodulocentral:0.0.1-arm32v7",
               "createOptions": "{}"
             }
           },
@@ -63,6 +63,11 @@
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }
+      }
+    },
+    "IotEdgeModuloCentral": {
+      "properties.desired": {
+        "TemperatureThreshold": 25
       }
     }
   }
