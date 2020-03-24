@@ -1,0 +1,30 @@
+Module twin desired properties will be updated to reflect entered JSON.
+
+{
+    "properties.desired": {
+        "PublishInterval": "3000",
+        "SlaveConfigs": {
+            "Slave01": {
+                "SlaveConnection": "/dev/ttyACM0",
+                "TcpPort": "0",
+                "RetryCount": "10",
+                "RetryInterval": "50",
+                "HwId": "CLP",
+                "BaudRate": "9600",
+                "DataBits": "8",
+                "StopBits": "1",
+                "Parity": "ODD",
+                "FlowControl": "NONE",
+                "Operations": {
+                    "Op01": {
+                        "PollingInterval": "1000",
+                        "UnitId": "1",
+                        "StartAddress": "100002",
+                        "Count": "1",
+                        "DisplayName": "disjuntor1"
+                    }
+                }
+            }
+        }
+    }
+}

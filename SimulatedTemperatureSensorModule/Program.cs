@@ -1,4 +1,4 @@
-namespace peneluc_iot_edge_central
+namespace SimulatedTemperatureSensorModule
 {
     using Microsoft.Azure.Devices.Client;
     using System;
@@ -84,7 +84,7 @@ namespace peneluc_iot_edge_central
             // Registra um método responsável por tratar as mensagens recebidas pelo módulo (filtrar e encaminhar).
             await ioTHubModuleClient.SetInputMessageHandlerAsync(_inputName, FilterMessages, ioTHubModuleClient);
         }
-        
+
         /// Este método recebe atualizações das propriedades desejadas do módulo twin e 
         /// atualiza a variável temperatureThreshold para corresponder.Todos os módulos 
         /// possuem seu próprio módulo duplo, o que permite configurar o código que está 
@@ -135,7 +135,7 @@ namespace peneluc_iot_edge_central
                 }
 
                 var messageBytes = message.GetBytes();
-                if(messageBytes==null)
+                if (messageBytes == null)
                 {
                     throw new InvalidOperationException("messageBytes igual a null!");
                 }
@@ -186,7 +186,7 @@ namespace peneluc_iot_edge_central
             }
             catch (AggregateException ex)
             {
-                int cont=0;
+                int cont = 0;
                 foreach (Exception exception in ex.InnerExceptions)
                 {
                     Console.WriteLine();
