@@ -1,17 +1,20 @@
-namespace peneluc_iot_edge_central
+namespace IotEdgeModuloCentral
 {
+    using IotEdgeModuloCentral.Tipos;
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Azure.Devices.Shared; // For TwinCollection
+    using Newtonsoft.Json;                // For JsonConvert
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Loader;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Generic;     // For KeyValuePair<>
-    using Microsoft.Azure.Devices.Shared; // For TwinCollection
-    using Newtonsoft.Json;                // For JsonConvert
 
     class Program
     {
+        #region Variaveis Locais
+
         /// <summary>
         /// Propriedade que armazena o contador de mensagens *encaminhadas*
         /// </summary>
@@ -23,11 +26,6 @@ namespace peneluc_iot_edge_central
         private static int _totalMensagensRecebidas;
 
         /// <summary>
-        /// Propriedade que indica a temperatura limite para envio de alerta
-        /// </summary>
-        private static int _temperaturaLimite = 25;
-
-        /// <summary>
         /// Propriedade com nome do módulo de *entrada* das mensagens
         /// </summary>
         private static readonly string _inputName = "input1";
@@ -36,6 +34,8 @@ namespace peneluc_iot_edge_central
         /// Propriedade com nome do módulo de *saída* das mensagens
         /// </summary>
         private static readonly string _outputName = "output1";
+
+        #endregion
 
         static void Main(string[] args)
         {
@@ -79,12 +79,12 @@ namespace peneluc_iot_edge_central
             await OnDesiredPropertiesUpdate(moduleTwin.Properties.Desired, ioTHubModuleClient);
 
             // Anexa método para tratar as *propriedades desejadas* do módulo gêmeo sempre que tiver atualizações.
-            await ioTHubModuleClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertiesUpdate, null);
+            //await ioTHubModuleClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertiesUpdate, null);
 
             // Registra um método responsável por tratar as mensagens recebidas pelo módulo (filtrar e encaminhar).
             await ioTHubModuleClient.SetInputMessageHandlerAsync(_inputName, FilterMessages, ioTHubModuleClient);
         }
-        
+
         /// Este método recebe atualizações das propriedades desejadas do módulo twin e 
         /// atualiza a variável temperatureThreshold para corresponder.Todos os módulos 
         /// possuem seu próprio módulo duplo, o que permite configurar o código que está 
@@ -96,10 +96,11 @@ namespace peneluc_iot_edge_central
             try
             {
                 Console.WriteLine("Desired property change:");
-                Console.WriteLine(JsonConvert.SerializeObject(desiredProperties));
+                //Console.WriteLine(JsonConvert.SerializeObject(desiredProperties));
 
-                if (desiredProperties["TemperatureThreshold"] != null)
-                    _temperaturaLimite = desiredProperties["TemperatureThreshold"];
+                //if (desiredProperties["TemperatureThreshold"] != null)
+                //    _temperaturaLimite = desiredProperties["TemperatureThreshold"];
+
             }
             catch (AggregateException ex)
             {
@@ -124,30 +125,35 @@ namespace peneluc_iot_edge_central
         /// com o valor definido como Alerta.
         static async Task<MessageResponse> FilterMessages(Message message, object userContext)
         {
-            Console.WriteLine($"[FilterMessages]");
-            Console.WriteLine($"[Esse metodo eh chamado sempre que o módulo recebe uma mensagem do hub IoT Edge]");
+            Console.WriteLine($"[FilterMessages] - Inicio");
+            Console.WriteLine($"1 - Esse metodo eh chamado sempre que o modulo recebe uma mensagem do hub IoT Edge");
             try
             {
+                Console.WriteLine($"2 - Inicializa instancia do ModuleClient");
                 ModuleClient moduleClient = (ModuleClient)userContext;
                 if (moduleClient == null)
                 {
                     throw new InvalidOperationException("Módulo cliente não instanciado");
                 }
 
+                Console.WriteLine($"3 - Captura corpo da mensagem em formato de bytes array");
                 var messageBytes = message.GetBytes();
-                if(messageBytes==null)
+                if (messageBytes == null)
                 {
                     throw new InvalidOperationException("messageBytes igual a null!");
                 }
 
+                Console.WriteLine($"4 - Converte corpo da mensagem em string");
                 var messageString = Encoding.UTF8.GetString(messageBytes);
-                var totalMensagensRecebidas = Interlocked.Increment(ref _totalMensagensRecebidas);
-                Console.WriteLine($"Mensagem recebida! Total: {totalMensagensRecebidas}, Corpo da Mensagem: {messageString}");
 
-                // Captura corpo da mensagem recebida
+                //incrementa contador
+                var totalMensagensRecebidas = Interlocked.Increment(ref _totalMensagensRecebidas);
+                Console.WriteLine($"*** Mensagem recebida! Total: {totalMensagensRecebidas}, Corpo da Mensagem: {messageString} ***");
+
                 MessageBody messageBody = null;
                 try
                 {
+                    Console.WriteLine($"5 - Esse metodo eh chamado sempre que o modulo recebe uma mensagem do hub IoT Edge");
                     messageBody = JsonConvert.DeserializeObject<MessageBody>(messageString);
                 }
                 catch (Exception ex)
@@ -163,34 +169,36 @@ namespace peneluc_iot_edge_central
                     }
                 }
 
-                if (messageBody != null && messageBody.machine.temperature > _temperaturaLimite)
+
+                //adiciona evento
+                Console.WriteLine($"6 - Cria Evento de Alerta para o hub IoT");
+                using (var filteredMessage = new Message(messageBytes))
                 {
-                    Console.WriteLine($"Temperatura da maquina {messageBody.machine.temperature} excede o limite {_temperaturaLimite}");
-                    using (var filteredMessage = new Message(messageBytes))
+                    foreach (KeyValuePair<string, string> prop in message.Properties)
                     {
-                        foreach (KeyValuePair<string, string> prop in message.Properties)
-                        {
-                            filteredMessage.Properties.Add(prop.Key, prop.Value);
-                        }
-
-                        filteredMessage.Properties.Add("MessageType", "Alert");
-                        await moduleClient.SendEventAsync(_outputName, filteredMessage);
-
-                        var totalMensagensEncaminhadas = Interlocked.Increment(ref _totalMensagensEncaminhadas);
-                        Console.WriteLine($"Mensagem recebida encaminhada para o Iot Hub! Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {_outputName}");
+                        filteredMessage.Properties.Add(prop.Key, prop.Value);
                     }
+
+                    Console.WriteLine($"7 - Envia evento de alerta");
+                    filteredMessage.Properties.Add("MessageType", "Alert");
+                    await moduleClient.SendEventAsync(_outputName, filteredMessage);
+
+                    var totalMensagensEncaminhadas = Interlocked.Increment(ref _totalMensagensEncaminhadas);
+                    Console.WriteLine($"***  Mensagem recebida e encaminhada para o Iot Hub! ***");
+                    Console.WriteLine($"***  Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {_outputName} ***");
                 }
 
                 // Indica que o tratamento da mensagem FOI concluído.
+                Console.WriteLine($"[FilterMessages] - Fim OK");
                 return MessageResponse.Completed;
             }
             catch (AggregateException ex)
             {
-                int cont=0;
+                int cont = 0;
                 foreach (Exception exception in ex.InnerExceptions)
                 {
                     Console.WriteLine();
-                    Console.WriteLine("FilterMessages :: Erro{0}: {1}", cont++, exception);
+                    Console.WriteLine("[FilterMessages] - Erro{0}: {1}", cont++, exception);
                 }
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
@@ -200,12 +208,40 @@ namespace peneluc_iot_edge_central
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("FilterMessages :: Erro: {0}", ex.Message);
+                Console.WriteLine("[FilterMessages] - Erro: {0}", ex.Message);
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
                 ModuleClient moduleClient = (ModuleClient)userContext;
                 return MessageResponse.Abandoned;
             }
+        }
+
+        private void enviarMensagemCLP(string device, Boolean ativar)
+        {
+            Console.WriteLine("Info: Construct message");
+
+            //var modbusMessageBody = new ModbusMessage
+            //{
+            //    HwId = HwId,
+            //    UId = UId,
+            //    Address = Address,
+            //    Value = ativar,
+            //};
+
+            //var jsonMessage = JsonConvert.SerializeObject(modbusMessageBody);
+            //var bytes = System.Text.Encoding.UTF8.GetBytes(jsonMessage);
+            //Console.WriteLine("Info: Byte array SwitchTwo");
+            //var pipeMessage = new Message(bytes);
+            //pipeMessage.Properties.Add("command-type", "ModbusWrite");
+
+            //await deviceClient.SendEventAsync("output1", pipeMessage);
+
+            //Console.WriteLine("Info: Piped out message SwitchTwo");
+
+            //if (reportedProperties.Count > 0)
+            //{
+            //    await deviceClient.UpdateReportedPropertiesAsync(reportedProperties).ConfigureAwait(false);
+            //}
         }
 
     }

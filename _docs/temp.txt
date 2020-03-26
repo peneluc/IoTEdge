@@ -1,0 +1,8 @@
+modbusToIoTHub
+FROM /messages/modules/modbusToIoTHub/outputs/* INTO BrokeredEndpoint(\"/modules/IotEdgeModuloCentral/inputs/input1\")
+
+IotEdgeModuloCentral
+FROM /messages/modules/IotEdgeModuloCentral/outputs/output1/* INTO $upstream
+
+"FROM /messages/modules/modbus/outputs/modbusOutput INTO BrokeredEndpoint(\"/modules/filtermodule/inputs/input1\")"
+}

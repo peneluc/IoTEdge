@@ -84,17 +84,12 @@
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-          "IotEdgeModuloCentralToIoTHub": "FROM /messages/modules/IotEdgeModuloCentral/outputs/* INTO $upstream",
-          "sensorToIotEdgeModuloCentral": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/IotEdgeModuloCentral/inputs/input1\")"
+          "modbusToIoTHub": "FROM /messages/modules/modbusToIoTHub/outputs/* INTO BrokeredEndpoint(\"/modules/IotEdgeModuloCentral/inputs/input1\")",
+          "IotEdgeModuloCentral": "FROM /messages/modules/IotEdgeModuloCentral/outputs/output1/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }
-      }
-    },
-    "IotEdgeModuloCentral": {
-      "properties.desired": {
-        "TemperatureThreshold": 25
       }
     }
   }
