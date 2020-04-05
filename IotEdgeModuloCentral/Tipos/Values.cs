@@ -2,8 +2,29 @@
 {
     class Values
     {
-        public string DisplayNam { get; set; } //MedidorDeNivel
-        public string Address { get; set; } //100002
-        public string Value { get; set; } //1
+        //{
+        //    "PublishTimestamp": "2020-03-25 23:36:51",
+        //    "Content": [
+        //    {
+        //        "HwId": "GTI-Device",
+        //        "Data": [
+        //        {
+        //            "CorrelationId": "DefaultCorrelationId",
+        //            "SourceTimestamp": "2020-03-25 23:36:51",
+        //            "Values": [
+        //            {
+        //                "DisplayName": "MedidorDeNivel",
+        //                "Address": "100002",
+        //                "Value": "1"
+        //            }
+        //            ]
+        //        }
+        //        ]
+        //    }
+        //    ]
+        //}
+        public string DisplayNam { get; set; }
+        public string Address { get; set; }
+        public string Value { get; set; }
     }
 }

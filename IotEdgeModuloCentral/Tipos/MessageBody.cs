@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace IotEdgeModuloCentral.Tipos
 {
@@ -26,7 +27,7 @@ namespace IotEdgeModuloCentral.Tipos
 
     class MessageBody
     {
-        public DateTime PublishTimestamp { get; set; } //2020-03-24 04:43:20
-        public Content Content { get; set; } //HwId":"GTI-Device","Data":[{"CorrelationId":"DefaultCorrelationId","SourceTimestamp":"2020-03-24 04:43:19","Values":[{"DisplayName":"MedidorDeNivel","Address":"100002","Value":"1"}]}]}]}
+        public DateTime PublishTimestamp { get; set; }
+        public List<Content> Content { get; set; }
     }
 }

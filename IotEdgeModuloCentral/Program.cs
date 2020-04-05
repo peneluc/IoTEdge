@@ -35,6 +35,11 @@ namespace IotEdgeModuloCentral
         /// </summary>
         private static readonly string _outputName = "output1";
 
+        /// <summary>
+        /// Propriedade com nome do módulo de *saída* das mensagens
+        /// </summary>
+        private static object _userContext = null;
+
         #endregion
 
         static void Main(string[] args)
@@ -70,6 +75,7 @@ namespace IotEdgeModuloCentral
             // Abra uma conexão com o tempo de execução do Edge
             ModuleClient ioTHubModuleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
             await ioTHubModuleClient.OpenAsync();
+            _userContext = ioTHubModuleClient;
             Util.Log("*** Cliente do módulo IoT Hub inicializado ***");
 
             // Obtem os valores das *propriedades desejadas* do módulo gêmeo
@@ -83,6 +89,10 @@ namespace IotEdgeModuloCentral
 
             // Registra um método responsável por tratar as mensagens recebidas pelo módulo (filtrar e encaminhar).
             await ioTHubModuleClient.SetInputMessageHandlerAsync(_inputName, FilterMessages, ioTHubModuleClient);
+
+            Random rand = new Random();
+            CancellationTokenSource cts = new CancellationTokenSource();
+            SendTruckTelemetryAsync(rand, cts.Token, ioTHubModuleClient);
         }
 
         /// Este método recebe atualizações das propriedades desejadas do módulo twin e 
@@ -123,6 +133,7 @@ namespace IotEdgeModuloCentral
         /// com o valor definido como Alerta.
         static async Task<MessageResponse> FilterMessages(Message message, object userContext)
         {
+            Util.Log($"[Update] - Info: 20200327-0232");
             Util.Log($"[FilterMessages] - Info: Inicio");
             Util.Log($"[FilterMessages] - Info: 1 - Esse metodo eh chamado sempre que o modulo recebe uma mensagem do hub IoT Edge");
             try
@@ -211,11 +222,67 @@ namespace IotEdgeModuloCentral
             }
         }
 
-        private async void EnviarMensagemModbus(object userContext, string HwId, string UId, string Address, string Value)
+        static async void SendTruckTelemetryAsync(Random rand, CancellationToken token, object userContext)
+        {
+            Util.Log($"[SendTruckTelemetryAsync] - Info: Inicio");
+            Util.Log($"[SendTruckTelemetryAsync] - Info: 1 - Inicializa instancia do ModuleClient");
+            ModuleClient moduleClient = (ModuleClient)userContext;
+            while (true)
+            {
+                // Create the telemetry JSON message.
+                //[
+                //    {
+                //        "PublishTimestamp" :"2020-04-05T00:46:59.913Z",
+                //        "HwId" :"AAAAA555555",
+                //        "SourceTimestamp" :"2020-04-05T00:46:59.913Z",
+                //        "DisplayName" :"AAAAA555555",
+                //        "Value" :98.6
+                //    }
+                //]
+                var telemetryDataPoint1 = new
+                {
+                    PublishTimestamp = DateTime.Now.ToShortTimeString(),
+                    HwId = "AAAAA555555",
+                    SourceTimestamp = DateTime.Now.ToShortTimeString(),
+                    DisplayName = "AAAAA555555",
+                    Value = 98.6
+                };
+                var telemetryDataPoint2 = new
+                {
+                    ContentsTemperature = Math.Round(1.00, 2),
+                    TruckState = "1",
+                    CoolingSystemState = "1",
+                    ContentsState = "1",
+                    Location = new { lon = 1, lat = 1 },
+                    Event = $"SendTruckTelemetryAsync - {DateTime.Now.ToShortTimeString()}",
+                };
+                var telemetryMessageString = JsonConvert.SerializeObject(telemetryDataPoint1);
+                var telemetryMessage = new Message(Encoding.ASCII.GetBytes(telemetryMessageString));
+
+                Util.Log($"[SendTruckTelemetryAsync] - Info: 2 - Telemetry data: {telemetryMessageString}");
+
+                // Bail if requested.
+                token.ThrowIfCancellationRequested();
+
+                // Send the telemetry message.
+                await moduleClient.SendEventAsync(telemetryMessage);
+                Util.Log($"[SendTruckTelemetryAsync] - Info: 3 - Telemetry sent {DateTime.Now.ToShortTimeString()}");
+
+                await Task.Delay(5000);
+            }
+            //Util.Log($"[SendTruckTelemetryAsync] - Info: Fim");
+        }
+
+        //private async void LigarMedidoDeNivel()
+        //{
+        //    EnviarMensagemModbus(string HwId, string UId, string Address, string Value);
+        //}
+
+        private async void EnviarMensagemModbus(string HwId, string UId, string Address, string Value)
         {
             Util.Log($"[EnviarMensagemModbus] - Info: Inicio");
             Util.Log($"[EnviarMensagemModbus] - Info: 1 - Inicializa instancia do ModuleClient");
-            ModuleClient moduleClient = (ModuleClient)userContext;
+            ModuleClient moduleClient = (ModuleClient)_userContext;
             if (moduleClient == null)
             {
                 throw new InvalidOperationException("Módulo cliente não instanciado");
