@@ -74,8 +74,9 @@
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-          "modbusToIoTHub": "FROM /messages/modules/modbusToIoTHub/outputs/* INTO BrokeredEndpoint(\"/modules/IotEdgeModuloCentral/inputs/input1\")",
-          "IotEdgeModuloCentral": "FROM /messages/modules/IotEdgeModuloCentral/outputs/output1/* INTO $upstream"
+          "modbusParaModuloCentral": "FROM /messages/modules/modbusToIoTHub/outputs/* INTO BrokeredEndpoint(\"/modules/IotEdgeModuloCentral/inputs/input1\")",
+          "moduloCentralParaIotCentral": "FROM /messages/modules/IotEdgeModuloCentral/outputs/output1/* INTO $upstream",
+          "moduloCentralParaModbus": "FROM /messages/modules/IotEdgeModuloCentral/outputs/output2/* INTO BrokeredEndpoint(\"/modules/modbusToIoTHub/inputs/input1\")"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
