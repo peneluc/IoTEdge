@@ -4,20 +4,32 @@ namespace IotEdgeModuloCentral.Tipos
 {
     /*
         {
-            "PublishTimestamp": "2020-04-06 00:52:03",
-            "HwId": "AAAAA555555",
-            "SourceTimestamp": "2020-04-06 00:52:03",
-            "DisplayName": "AAAAA555555",
-            "Value": false
+            "HwId": "1",
+            "PublicacaoCLP": "2020-04-06 00:52:03",
+            "PublicacaoModBus": "2020-04-06 00:52:03",
+            "PublicacaoCentral": "2020-04-06 00:52:03",
+            "NivelReservatorioSuperior": 850,
+            "VazaoSaida": 250,
+            "NivelReservatorioInferior": 850,
+            "VazaoEntrada": 250,
+            "StatusBomba1": false,
+            "StatusBomba2”: false,
+            "ValvulaCorte": true
         }
     */
 
     class MessageBodyIoTCentral
     {
-        public DateTime PublishTimestamp { get; set; }
         public string HwId { get; set; }
-        public DateTime SourceTimestamp { get; set; }
-        public string DisplayName { get; set; }
-        public int Value { get; set; }
+        public DateTime PublicacaoCLP { get; set; }
+        public DateTime PublicacaoModBus { get; set; }
+        public DateTime PublicacaoCentral { get; set; }
+        public int NivelReservatorioInferior { get; set; }
+        public int NivelReservatorioSuperior { get; set; }
+        public int VazaoSaida { get; set; }
+        public int VazaoEntrada { get; set; }
+        public bool StatusBomba1 { get; set; }
+        public bool StatusBomba2 { get; set; }
+        public bool ValvulaCorte { get; set; }
     }
 }
