@@ -93,7 +93,7 @@ namespace IotEdgeModuloCentral
         /// </summary>
         static async Task Init()
         {
-            Util.Log($"[Init] - Info: Inicio - {DateTime.Now}");
+            Util.LogFixo($"[Init] - Info: Inicio - {DateTime.Now}");
 
             StartObjects();
 
@@ -124,11 +124,14 @@ namespace IotEdgeModuloCentral
             await ioTHubModuleClient
                 .SetMethodHandlerAsync("DesligarMedidorDeNivel", DesligarMedidorDeNivel, ioTHubModuleClient)
                 .ConfigureAwait(false);
+            await ioTHubModuleClient
+                .SetMethodHandlerAsync("PiscarLED", PiscarLED, ioTHubModuleClient)
+                .ConfigureAwait(false);
 
             //Console.WriteLine("Waiting 30 seconds for IoT Hub method calls ...");
             //await Task.Delay(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
 
-            Util.Log($"[Init] - Info: Fim - {DateTime.Now}");
+            Util.LogFixo($"[Init] - Info: Fim - {DateTime.Now}");
         }
 
         private static void StartObjects()
@@ -190,8 +193,6 @@ namespace IotEdgeModuloCentral
             Util.Log($"[FilterMessages] - Info: 1 - Esse metodo eh chamado sempre que o modulo recebe uma mensagem do hub IoT Edge");
             try
             {
-                await BlinkLED(userContext);
-
                 Util.Log($"[FilterMessages] - Info: 2 - Inicializa instancia do ModuleClient");
                 ModuleClient moduleClient = (ModuleClient)userContext;
                 if (moduleClient == null)
@@ -213,7 +214,7 @@ namespace IotEdgeModuloCentral
 
                 //incrementa contador
                 var totalMensagensRecebidas = Interlocked.Increment(ref _totalMensagensRecebidas);
-                Util.Log($"*** Mensagem recebida! Total: {totalMensagensRecebidas}, Corpo da Mensagem: {messageString} ***");
+                Util.LogFixo($"*** Mensagem recebida! Total: {totalMensagensRecebidas}, Corpo da Mensagem: {messageString} ***");
 
 
                 MessageBodyModbusOutput messageBodyModbus = null;
@@ -240,6 +241,42 @@ namespace IotEdgeModuloCentral
                 {
                     Util.Log($"[FilterMessages] - Info: 6 - Transforma objeto de msg do Modbus em objeto de msg para o IoT Central");
                     /*
+                     * ENTRADA
+                        {
+                          "PublishTimestamp": "2020-04-19 03:19:08",
+                          "Content": [
+                            {
+                              "HwId": "GTI-Device",
+                              "Data": [
+                                {
+                                  "CorrelationId": "DefaultCorrelationId",
+                                  "SourceTimestamp": "2020-04-19 03:19:04",
+                                  "Values": [
+                                    {
+                                      "DisplayName": "StatusBomba",
+                                      "Address": "00009",
+                                      "Value": "0"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "CorrelationId": "DefaultCorrelationId",
+                                  "SourceTimestamp": "2020-04-19 03:19:05",
+                                  "Values": [
+                                    {
+                                      "DisplayName": "MedidorDeNivel",
+                                      "Address": "10002",
+                                      "Value": "1"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+
+                    SAIDA
+                    
                         {
                             "HwId": "1",
                             "PublicacaoCLP": "2020-04-06 00:52:03",
@@ -253,145 +290,50 @@ namespace IotEdgeModuloCentral
                             "StatusBomba2”: false,
                             "ValvulaCorte": true
                         }
-                        {
-                            "PublishTimestamp":"2019-12-28 16:15:22",
-                            "Content":[
-	                            {"HwId":"GTI-CIM",
-	                             "Data":[
-		                            {"CorrelationId":"DefaultCorrelationId",
-		                            "SourceTimestamp":"2019-12-28 16:14:59",
-		                            "Values":[
-			                            {"DisplayName":"medidorDeNivel",
-			                             "Address":"100002",
-			                            "Value":"1"}
-			                            ]
-		                            }
-	                             ]
-	                            }
-                            ]
-                        }
                     */
                     if (messageBodyModbus != null)
                     {
                         //PublishTimestamp
-                        Random rnd = new Random();
                         messageBodyIoTCentral.PublicacaoModBus = messageBodyModbus.PublishTimestamp;
                         messageBodyIoTCentral.PublicacaoCentral = DateTime.Now;
                         if (messageBodyModbus.Content != null && messageBodyModbus.Content.Count > 0)
                         {
                             //HwId
                             messageBodyIoTCentral.HwId = messageBodyModbus.Content[0].HwId;
+
+                            //Trata corpo da mensagem
                             if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 0)
                             {
-                                if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 0)
+                                foreach (Data data in messageBodyModbus.Content[0].Data)
                                 {
-                                    //Nivel Inferior
-                                    if (messageBodyModbus.Content[0].Data[0].Values != null && messageBodyModbus.Content[0].Data[0].Values.Count > 0)
+                                    foreach (Values value in data.Values)
                                     {
-                                        messageBodyIoTCentral.PublicacaoCLP = messageBodyModbus.Content[0].Data[0].SourceTimestamp;
-                                        if (string.IsNullOrEmpty(messageBodyModbus.Content[0].Data[0].Values[0].Value))
+                                        switch (value.DisplayName)
                                         {
-                                            messageBodyIoTCentral.NivelReservatorioInferior = rnd.Next(1, 20);
-                                        }
-                                        else
-                                        {
-                                            messageBodyIoTCentral.NivelReservatorioInferior = int.Parse(messageBodyModbus.Content[0].Data[0].Values[0].Value);
-                                        }
-                                    }
-                                }
-                                if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 1)
-                                {
-                                    //Nivel Superior
-                                    if (messageBodyModbus.Content[0].Data[0].Values != null && messageBodyModbus.Content[0].Data[1].Values.Count > 0)
-                                    {
-                                        messageBodyIoTCentral.PublicacaoCLP = messageBodyModbus.Content[0].Data[1].SourceTimestamp;
-                                        if (string.IsNullOrEmpty(messageBodyModbus.Content[0].Data[1].Values[0].Value))
-                                        {
-                                            messageBodyIoTCentral.NivelReservatorioSuperior = rnd.Next(1, 20);
-                                        }
-                                        else
-                                        {
-                                            messageBodyIoTCentral.NivelReservatorioSuperior = int.Parse(messageBodyModbus.Content[0].Data[1].Values[0].Value);
-                                        }
-                                    }
-                                }
-                                if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 2)
-                                {
-                                    //Vazao Entrada
-                                    if (messageBodyModbus.Content[0].Data[0].Values != null && messageBodyModbus.Content[0].Data[2].Values.Count > 0)
-                                    {
-                                        messageBodyIoTCentral.PublicacaoCLP = messageBodyModbus.Content[0].Data[2].SourceTimestamp;
-                                        if (string.IsNullOrEmpty(messageBodyModbus.Content[0].Data[2].Values[0].Value))
-                                        {
-                                            messageBodyIoTCentral.VazaoEntrada = rnd.Next(1, 20);
-                                        }
-                                        else
-                                        {
-                                            messageBodyIoTCentral.VazaoEntrada = int.Parse(messageBodyModbus.Content[0].Data[2].Values[0].Value);
-                                        }
-                                    }
-                                }
-                                if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 3)
-                                {
-                                    //Vazao Saida
-                                    if (messageBodyModbus.Content[0].Data[0].Values != null && messageBodyModbus.Content[0].Data[3].Values.Count > 0)
-                                    {
-                                        messageBodyIoTCentral.PublicacaoCLP = messageBodyModbus.Content[0].Data[3].SourceTimestamp;
-                                        if (string.IsNullOrEmpty(messageBodyModbus.Content[0].Data[3].Values[0].Value))
-                                        {
-                                            messageBodyIoTCentral.VazaoSaida = rnd.Next(1, 20);
-                                        }
-                                        else
-                                        {
-                                            messageBodyIoTCentral.VazaoSaida = int.Parse(messageBodyModbus.Content[0].Data[3].Values[0].Value);
-                                        }
-                                    }
-                                }
-                                if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 4)
-                                {
-                                    //StatusBomba1
-                                    if (messageBodyModbus.Content[0].Data[0].Values != null && messageBodyModbus.Content[0].Data[4].Values.Count > 0)
-                                    {
-                                        messageBodyIoTCentral.PublicacaoCLP = messageBodyModbus.Content[0].Data[4].SourceTimestamp;
-                                        if (string.IsNullOrEmpty(messageBodyModbus.Content[0].Data[4].Values[0].Value))
-                                        {
-                                            messageBodyIoTCentral.StatusBomba1 = (rnd.Next(2)==0);
-                                        }
-                                        else
-                                        {
-                                            messageBodyIoTCentral.StatusBomba1 = bool.Parse(messageBodyModbus.Content[0].Data[4].Values[0].Value);
-                                        }
-                                    }
-                                }
-                                if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 5)
-                                {
-                                    //StatusBomba2
-                                    if (messageBodyModbus.Content[0].Data[0].Values != null && messageBodyModbus.Content[0].Data[5].Values.Count > 0)
-                                    {
-                                        messageBodyIoTCentral.PublicacaoCLP = messageBodyModbus.Content[0].Data[5].SourceTimestamp;
-                                        if (string.IsNullOrEmpty(messageBodyModbus.Content[0].Data[5].Values[0].Value))
-                                        {
-                                            messageBodyIoTCentral.StatusBomba2 = (rnd.Next(2) == 0);
-                                        }
-                                        else
-                                        {
-                                            messageBodyIoTCentral.StatusBomba2 = bool.Parse(messageBodyModbus.Content[0].Data[5].Values[0].Value);
-                                        }
-                                    }
-                                }
-                                if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 6)
-                                {
-                                    //ValvulaCorte
-                                    if (messageBodyModbus.Content[0].Data[0].Values != null && messageBodyModbus.Content[0].Data[6].Values.Count > 0)
-                                    {
-                                        messageBodyIoTCentral.PublicacaoCLP = messageBodyModbus.Content[0].Data[6].SourceTimestamp;
-                                        if (string.IsNullOrEmpty(messageBodyModbus.Content[0].Data[6].Values[0].Value))
-                                        {
-                                            messageBodyIoTCentral.ValvulaCorte = (rnd.Next(2) == 0);
-                                        }
-                                        else
-                                        {
-                                            messageBodyIoTCentral.ValvulaCorte = bool.Parse(messageBodyModbus.Content[0].Data[6].Values[0].Value);
+                                            case "MedidorDeNivel":
+                                                messageBodyIoTCentral.NivelReservatorioInferior = ObterValorInteiroRealOuSimulado(value);
+                                                break;
+                                            case "NivelSuperior":
+                                                messageBodyIoTCentral.NivelReservatorioSuperior = ObterValorInteiroRealOuSimulado(null);
+                                                break;
+                                            case "VazaoEntrada":
+                                                messageBodyIoTCentral.VazaoEntrada = ObterValorInteiroRealOuSimulado(null);
+                                                break;
+                                            case "VazaoSaida":
+                                                messageBodyIoTCentral.VazaoSaida = ObterValorInteiroRealOuSimulado(null);
+                                                break;
+                                            case "StatusBomba":
+                                                messageBodyIoTCentral.StatusBomba1 = ObterValorBooleanoRealOuSimulado(value);
+                                                break;
+                                            case "StatusBomba2":
+                                                messageBodyIoTCentral.StatusBomba2 = ObterValorBooleanoRealOuSimulado(null);
+                                                break;
+                                            case "ValvulaCorte":
+                                                messageBodyIoTCentral.ValvulaCorte = ObterValorBooleanoRealOuSimulado(null);
+                                                break;
+                                            default:
+                                                Util.Log($"Nome de dispositivo nao reconhecido: {value}");
+                                                break;
                                         }
                                     }
                                 }
@@ -405,7 +347,6 @@ namespace IotEdgeModuloCentral
                     Util.Log($"Erro ao transformar objetos: {ex}");
                 }
 
-
                 Util.Log($"[FilterMessages] - Info: 7 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
                 try
                 {
@@ -416,7 +357,6 @@ namespace IotEdgeModuloCentral
                 {
                     Util.Log($"Erro ao capturar byteArray: {ex}");
                 }
-
 
                 //adiciona evento
                 Util.Log($"[FilterMessages] - Info: 8 - Cria Evento de Alerta para o hub IoT");
@@ -433,9 +373,11 @@ namespace IotEdgeModuloCentral
 
                     await moduleClient.SendEventAsync(_encaminharParaIoTCentral, filteredMessage); // <---------- envia mensagem iot central <-----------
 
+                    Util.Log($"[FilterMessages] - Info: 10 - Converte corpo da mensagem em string");
+                    messageString = Encoding.UTF8.GetString(messageBytes);
+
                     var totalMensagensEncaminhadas = Interlocked.Increment(ref _totalMensagensEncaminhadas);
-                    Util.Log($"***  Mensagem recebida e encaminhada para o Iot Hub! ***");
-                    Util.Log($"***  Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {_encaminharParaIoTCentral} ***");
+                    Util.LogFixo($"***  Mensagem encaminhada! Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {messageString} ***");
                 }
 
                 // Indica que o tratamento da mensagem FOI concluído.
@@ -464,16 +406,30 @@ namespace IotEdgeModuloCentral
             }
         }
 
-        private static async Task BlinkLED(object userContext)
+        public static int ObterValorInteiroRealOuSimulado(Values value)
         {
-            Util.Log($"[FilterMessages] - Extra: Pisca LED (liga/desliga) - Inicio");
-            for (int i = 0; i < 10; i++)
-            {
-                await LigarMedidorDeNivel(null, userContext);
-                await Task.Delay(1000);
-                await DesligarMedidorDeNivel(null, userContext);
-            }
-            Util.Log($"[FilterMessages] - Extra: Pisca LED (liga/desliga) - Fim");
+            Random rnd = new Random();
+            int retorno = 0;
+
+            if (string.IsNullOrEmpty(value.Value))
+                retorno = rnd.Next(1, 100);
+            else
+                retorno = int.Parse(value.Value);
+
+            return retorno;
+        }
+
+        public static bool ObterValorBooleanoRealOuSimulado(Values value)
+        {
+            Random rnd = new Random();
+            bool retorno = false;
+
+            if (string.IsNullOrEmpty(value.Value))
+                retorno = rnd.Next(1, 100) < 50;
+            else
+                retorno = bool.Parse(value.Value);
+
+            return retorno;
         }
 
         static async Task<MethodResponse> LigarMedidorDeNivel(MethodRequest methodRequest, object userContext)
@@ -490,6 +446,19 @@ namespace IotEdgeModuloCentral
             var retorno = await EnviarMensagemMedidorDeNivel("0", userContext);
             Util.Log($"[DesligarMedidoDeNivel] - Info: Fim - {DateTime.Now}");
             return retorno;
+        }
+
+        static async Task<MethodResponse> PiscarLED(MethodRequest methodRequest, object userContext)
+        {
+            Util.Log($"[PiscarLED] - Inicio");
+            for (int i = 0; i < 10; i++)
+            {
+                await LigarMedidorDeNivel(null, userContext);
+                await Task.Delay(1000);
+                await DesligarMedidorDeNivel(null, userContext);
+            }
+            Util.Log($"[PiscarLED] - Fim");
+            return new MethodResponse(new byte[0], 200);
         }
 
         static async Task<MethodResponse> EnviarMensagemMedidorDeNivel(string value, object userContext)

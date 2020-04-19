@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IotEdgeModuloCentral.Tipos;
+using System;
 
 namespace IotEdgeModuloCentral
 {
@@ -6,7 +7,13 @@ namespace IotEdgeModuloCentral
     {
         public static void Log(string msg)
         {
+            //Console.WriteLine(msg);
+        }
+
+        public static void LogFixo(string msg)
+        {
             Console.WriteLine(msg);
         }
+
     }
 }
