@@ -93,43 +93,61 @@ namespace IotEdgeModuloCentral
         /// </summary>
         static async Task Init()
         {
+            Util.LogFixo($"[Init] - Info: v.1.15 em 20200423-0130");
             Util.LogFixo($"[Init] - Info: Inicio - {DateTime.Now}");
 
-            StartObjects();
+            try
+            {
+                StartObjects();
 
-            AmqpTransportSettings amqpSetting = new AmqpTransportSettings(TransportType.Amqp_Tcp_Only);
-            ITransportSettings[] settings = { amqpSetting };
+                AmqpTransportSettings amqpSetting = new AmqpTransportSettings(TransportType.Amqp_Tcp_Only);
+                ITransportSettings[] settings = { amqpSetting };
 
-            // Abra uma conexão com o tempo de execução do Edge
-            ModuleClient ioTHubModuleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
-            await ioTHubModuleClient.OpenAsync();
-            Util.Log("*** Cliente do modulo IoT Hub inicializado ***");
+                // Abra uma conexão com o tempo de execução do Edge
+                ModuleClient ioTHubModuleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
+                await ioTHubModuleClient.OpenAsync();
+                Util.Log("*** Cliente do modulo IoT Hub inicializado ***");
 
-            // Obtem os valores das *propriedades desejadas* do módulo gêmeo
-            var moduleTwin = await ioTHubModuleClient.GetTwinAsync();
+                // Obtem os valores das *propriedades desejadas* do módulo gêmeo
+                var moduleTwin = await ioTHubModuleClient.GetTwinAsync();
 
-            // Atribui *propriedades desejadas* ao método de tratamento
-            await OnDesiredPropertiesUpdate(moduleTwin.Properties.Desired, ioTHubModuleClient);
+                // Atribui *propriedades desejadas* ao método de tratamento
+                await OnDesiredPropertiesUpdate(moduleTwin.Properties.Desired, ioTHubModuleClient);
 
-            // Anexa método para tratar as *propriedades desejadas* do módulo gêmeo sempre que tiver atualizações.
-            await ioTHubModuleClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertiesUpdate, null);
+                // Anexa método para tratar as *propriedades desejadas* do módulo gêmeo sempre que tiver atualizações.
+                await ioTHubModuleClient.SetDesiredPropertyUpdateCallbackAsync(OnDesiredPropertiesUpdate, null);
 
-            // Registra um método responsável por tratar as mensagens recebidas pelo módulo (filtrar e encaminhar).
-            await ioTHubModuleClient.SetInputMessageHandlerAsync(_inputName, FilterMessages, ioTHubModuleClient);
+                // Registra um método responsável por tratar as mensagens recebidas pelo módulo (filtrar e encaminhar).
+                await ioTHubModuleClient.SetInputMessageHandlerAsync(_inputName, FilterMessages, ioTHubModuleClient);
 
-            // Registra um método responsável por tratar as mensagens recebidas pelo módulo (filtrar e encaminhar).
-            await ioTHubModuleClient
-                .SetMethodHandlerAsync("LigarMedidorDeNivel", LigarMedidorDeNivel, ioTHubModuleClient)
-                .ConfigureAwait(false);
-            await ioTHubModuleClient
-                .SetMethodHandlerAsync("DesligarMedidorDeNivel", DesligarMedidorDeNivel, ioTHubModuleClient)
-                .ConfigureAwait(false);
-            await ioTHubModuleClient
-                .SetMethodHandlerAsync("PiscarLED", PiscarLED, ioTHubModuleClient)
-                .ConfigureAwait(false);
+                // Registra um método responsável por tratar as mensagens recebidas pelo módulo (filtrar e encaminhar).
+                await ioTHubModuleClient
+                    .SetMethodHandlerAsync("LigarMedidorDeNivel", LigarMedidorDeNivel, ioTHubModuleClient)
+                    .ConfigureAwait(false);
+                await ioTHubModuleClient
+                    .SetMethodHandlerAsync("DesligarMedidorDeNivel", DesligarMedidorDeNivel, ioTHubModuleClient)
+                    .ConfigureAwait(false);
+                await ioTHubModuleClient
+                    .SetMethodHandlerAsync("PiscarLED", PiscarLED, ioTHubModuleClient)
+                    .ConfigureAwait(false);
 
-            //Console.WriteLine("Waiting 30 seconds for IoT Hub method calls ...");
-            //await Task.Delay(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+                //Console.WriteLine("Waiting 30 seconds for IoT Hub method calls ...");
+                //await Task.Delay(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+
+                Util.LogFixo($"[Init] - Info: Fim - {DateTime.Now}");
+            }
+            catch (AggregateException ex)
+            {
+                int cont = 0;
+                foreach (Exception exception in ex.InnerExceptions)
+                {
+                    Util.LogErro($"Init :: Error{cont++}: {exception}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Util.LogErro($"Init :: Error: {ex.Message}");
+            }
 
             Util.LogFixo($"[Init] - Info: Fim - {DateTime.Now}");
         }
@@ -168,12 +186,12 @@ namespace IotEdgeModuloCentral
                 int cont = 0;
                 foreach (Exception exception in ex.InnerExceptions)
                 {
-                    Util.Log($"OnDesiredPropertiesUpdate :: Error{cont++}: {exception}");
+                    Util.LogErro($"OnDesiredPropertiesUpdate :: Error{cont++}: {exception}");
                 }
             }
             catch (Exception ex)
             {
-                Util.Log($"OnDesiredPropertiesUpdate :: Error: {ex.Message}");
+                Util.LogErro($"OnDesiredPropertiesUpdate :: Error: {ex.Message}");
             }
 
             Util.Log($"[OnDesiredPropertiesUpdate] - Info: Fim - {DateTime.Now} OK");
@@ -187,8 +205,6 @@ namespace IotEdgeModuloCentral
         static async Task<MessageResponse> FilterMessages(Message message, object userContext)
         {
             Util.Log($"[FilterMessages] - Info: Inicio - {DateTime.Now}");
-
-            MessageBodyIoTCentral messageBodyIoTCentral = new MessageBodyIoTCentral();
 
             Util.Log($"[FilterMessages] - Info: 1 - Esse metodo eh chamado sempre que o modulo recebe uma mensagem do hub IoT Edge");
             try
@@ -220,165 +236,32 @@ namespace IotEdgeModuloCentral
                 MessageBodyModbusOutput messageBodyModbus = null;
                 try
                 {
-                    Util.Log($"[FilterMessages] - Info: 5 - Deserializa a mensagem em um objeto");
+                    Util.LogErro($"[FilterMessages] - Info: 5 - Deserializa a mensagem em um objeto");
                     messageBodyModbus = JsonConvert.DeserializeObject<MessageBodyModbusOutput>(messageString);
                 }
                 catch (Exception ex)
                 {
-                    Util.Log($"Erro na captura corpo da mensagem: {ex}");
+                    Util.LogErro($"Erro na captura corpo da mensagem: {ex}");
                     if (string.IsNullOrEmpty(messageString))
                     {
                         throw new InvalidOperationException($"Falha ao deserializar messageString: {messageString}");
                     }
                     else
                     {
-                        Util.Log($"messageString: {messageString}");
+                        Util.LogErro($"messageString: {messageString}");
                     }
                 }
 
+                Util.Log($"[FilterMessages] - Info: 6 - Transforma objeto de msg do Modbus em objeto de msg para o IoT Central");
 
-                try
-                {
-                    Util.Log($"[FilterMessages] - Info: 6 - Transforma objeto de msg do Modbus em objeto de msg para o IoT Central");
-                    /*
-                     * ENTRADA
-                        {
-                          "PublishTimestamp": "2020-04-19 03:19:08",
-                          "Content": [
-                            {
-                              "HwId": "GTI-Device",
-                              "Data": [
-                                {
-                                  "CorrelationId": "DefaultCorrelationId",
-                                  "SourceTimestamp": "2020-04-19 03:19:04",
-                                  "Values": [
-                                    {
-                                      "DisplayName": "StatusBomba",
-                                      "Address": "00009",
-                                      "Value": "0"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "CorrelationId": "DefaultCorrelationId",
-                                  "SourceTimestamp": "2020-04-19 03:19:05",
-                                  "Values": [
-                                    {
-                                      "DisplayName": "MedidorDeNivel",
-                                      "Address": "10002",
-                                      "Value": "1"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
+                MessageBodyIoTCentral messageBodyIoTCentral = CriandoMensagemIoTCentral(messageBodyModbus);
 
-                    SAIDA
-                    
-                        {
-                            "HwId": "1",
-                            "PublicacaoCLP": "2020-04-06 00:52:03",
-                            "PublicacaoModBus": "2020-04-06 00:52:03",
-                            "PublicacaoCentral": "2020-04-06 00:52:03",
-                            "NivelReservatorioSuperior": 850,
-                            "VazaoSaida": 250,
-                            "NivelReservatorioInferior": 850,
-                            "VazaoEntrada": 250,
-                            "StatusBomba1": false,
-                            "StatusBomba2”: false,
-                            "ValvulaCorte": true
-                        }
-                    */
-                    if (messageBodyModbus != null)
-                    {
-                        //PublishTimestamp
-                        messageBodyIoTCentral.PublicacaoModBus = messageBodyModbus.PublishTimestamp;
-                        messageBodyIoTCentral.PublicacaoCentral = DateTime.Now;
-                        if (messageBodyModbus.Content != null && messageBodyModbus.Content.Count > 0)
-                        {
-                            //HwId
-                            messageBodyIoTCentral.HwId = messageBodyModbus.Content[0].HwId;
-
-                            //Trata corpo da mensagem
-                            if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 0)
-                            {
-                                foreach (Data data in messageBodyModbus.Content[0].Data)
-                                {
-                                    foreach (Values value in data.Values)
-                                    {
-                                        switch (value.DisplayName)
-                                        {
-                                            case "MedidorDeNivel":
-                                                messageBodyIoTCentral.NivelReservatorioInferior = ObterValorInteiroRealOuSimulado(value);
-                                                break;
-                                            case "NivelSuperior":
-                                                messageBodyIoTCentral.NivelReservatorioSuperior = ObterValorInteiroRealOuSimulado(null);
-                                                break;
-                                            case "VazaoEntrada":
-                                                messageBodyIoTCentral.VazaoEntrada = ObterValorInteiroRealOuSimulado(null);
-                                                break;
-                                            case "VazaoSaida":
-                                                messageBodyIoTCentral.VazaoSaida = ObterValorInteiroRealOuSimulado(null);
-                                                break;
-                                            case "StatusBomba":
-                                                messageBodyIoTCentral.StatusBomba1 = ObterValorBooleanoRealOuSimulado(value);
-                                                break;
-                                            case "StatusBomba2":
-                                                messageBodyIoTCentral.StatusBomba2 = ObterValorBooleanoRealOuSimulado(null);
-                                                break;
-                                            case "ValvulaCorte":
-                                                messageBodyIoTCentral.ValvulaCorte = ObterValorBooleanoRealOuSimulado(null);
-                                                break;
-                                            default:
-                                                Util.Log($"Nome de dispositivo nao reconhecido: {value}");
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    Util.Log($"Erro ao transformar objetos: {ex}");
-                }
-
-                Util.Log($"[FilterMessages] - Info: 7 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
-                try
-                {
-                    string json = JsonConvert.SerializeObject(messageBodyIoTCentral);
-                    messageBytes = Encoding.UTF8.GetBytes(json);
-                }
-                catch (Exception ex)
-                {
-                    Util.Log($"Erro ao capturar byteArray: {ex}");
-                }
+                //Gravar dados no banco
+                Util.GravarDados(messageBodyIoTCentral);
 
                 //adiciona evento
-                Util.Log($"[FilterMessages] - Info: 8 - Cria Evento de Alerta para o hub IoT");
-                using (var filteredMessage = new Message(messageBytes))
-                {
-                    foreach (KeyValuePair<string, string> prop in message.Properties)
-                    {
-                        filteredMessage.Properties.Add(prop.Key, prop.Value);
-                        Util.Log($"***  filteredMessage.Properties.Add({prop.Key}, {prop.Value}) ***");
-                    }
-
-                    Util.Log($"[FilterMessages] - Info: 9 - Envia evento de alerta");
-                    filteredMessage.Properties.Add("MessageType", "Alert");
-
-                    await moduleClient.SendEventAsync(_encaminharParaIoTCentral, filteredMessage); // <---------- envia mensagem iot central <-----------
-
-                    Util.Log($"[FilterMessages] - Info: 10 - Converte corpo da mensagem em string");
-                    messageString = Encoding.UTF8.GetString(messageBytes);
-
-                    var totalMensagensEncaminhadas = Interlocked.Increment(ref _totalMensagensEncaminhadas);
-                    Util.LogFixo($"***  Mensagem encaminhada! Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {messageString} ***");
-                }
+                Util.Log($"[FilterMessages] - Info: 7 - Cria Evento de Alerta para o hub IoT");
+                await EnviarMensagemIoTCentral(messageBodyIoTCentral, message, moduleClient);
 
                 // Indica que o tratamento da mensagem FOI concluído.
                 Util.Log($"[FilterMessages] - Info: Fim - {DateTime.Now} OK");
@@ -389,7 +272,7 @@ namespace IotEdgeModuloCentral
                 int cont = 0;
                 foreach (Exception exception in ex.InnerExceptions)
                 {
-                    Util.Log($"[FilterMessages] - Erro{cont++}: {exception}");
+                    Util.LogErro($"[FilterMessages] - Erro{cont++}: {exception}");
                 }
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
@@ -398,12 +281,175 @@ namespace IotEdgeModuloCentral
             }
             catch (Exception ex)
             {
-                Util.Log($"[FilterMessages] - Erro: {ex}");
+                Util.LogErro($"[FilterMessages] - Erro: {ex}");
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
                 ModuleClient moduleClient = (ModuleClient)userContext;
                 return MessageResponse.Abandoned;
             }
+        }
+
+        private static async Task<string> EnviarMensagemIoTCentral(MessageBodyIoTCentral messageBodyIoTCentral, Message message, ModuleClient moduleClient)
+        {
+            string messageString = string.Empty;
+            byte[] messageBytes = new byte[0];
+            Util.Log($"[EnviarMensagemIoTCentral] - Info: 1 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
+            try
+            {
+                string json = JsonConvert.SerializeObject(messageBodyIoTCentral);
+                messageBytes = Encoding.UTF8.GetBytes(json);
+            }
+            catch (Exception ex)
+            {
+                Util.LogErro($"Erro ao capturar byteArray: {ex}");
+            }
+
+            Util.Log($"[EnviarMensagemIoTCentral] - Info: 2 - Cria evento e envia msg");
+            using (var filteredMessage = new Message(messageBytes))
+            {
+                foreach (KeyValuePair<string, string> prop in message.Properties)
+                {
+                    filteredMessage.Properties.Add(prop.Key, prop.Value);
+                    Util.Log($"***  filteredMessage.Properties.Add({prop.Key}, {prop.Value}) ***");
+                }
+
+                Util.Log($"[FilterMessages] - Info: 3 - Envia evento de alerta");
+                filteredMessage.Properties.Add("MessageType", "Alert");
+
+                await moduleClient.SendEventAsync(_encaminharParaIoTCentral, filteredMessage); // <---------- envia mensagem iot central <-----------
+
+                Util.Log($"[FilterMessages] - Info: 4 - Converte corpo da mensagem em string");
+                messageString = Encoding.UTF8.GetString(messageBytes);
+
+                var totalMensagensEncaminhadas = Interlocked.Increment(ref _totalMensagensEncaminhadas);
+                Util.LogFixo($"***  Mensagem encaminhada! Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {messageString} ***");
+            }
+            Util.Log($"[EnviarMensagemIoTCentral] - Info: 5 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
+
+            return messageString;
+        }
+
+        private static MessageBodyIoTCentral CriandoMensagemIoTCentral(MessageBodyModbusOutput messageBodyModbus)
+        {
+            MessageBodyIoTCentral messageBodyIoTCentral = new MessageBodyIoTCentral();
+            try
+            {
+                /*
+                 * ENTRADA
+                    {
+                      "PublishTimestamp": "2020-04-19 03:19:08",
+                      "Content": [
+                        {
+                          "HwId": "GTI-Device",
+                          "Data": [
+                            {
+                              "CorrelationId": "DefaultCorrelationId",
+                              "SourceTimestamp": "2020-04-19 03:19:04",
+                              "Values": [
+                                {
+                                  "DisplayName": "StatusBomba",
+                                  "Address": "00009",
+                                  "Value": "0"
+                                }
+                              ]
+                            },
+                            {
+                              "CorrelationId": "DefaultCorrelationId",
+                              "SourceTimestamp": "2020-04-19 03:19:05",
+                              "Values": [
+                                {
+                                  "DisplayName": "MedidorDeNivel",
+                                  "Address": "10002",
+                                  "Value": "1"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+
+                SAIDA
+
+                    {
+                        "HwId": "1",
+                        "PublicacaoCLP": "2020-04-06 00:52:03",
+                        "PublicacaoModBus": "2020-04-06 00:52:03",
+                        "PublicacaoCentral": "2020-04-06 00:52:03",
+                        "NivelReservatorioSuperior": 850,
+                        "VazaoSaida": 250,
+                        "NivelReservatorioInferior": 850,
+                        "VazaoEntrada": 250,
+                        "StatusBomba1": false,
+                        "StatusBomba2”: false,
+                        "ValvulaCorte": true
+                    }
+                */
+                if (messageBodyModbus != null)
+                {
+                    //PublishTimestamp
+                    messageBodyIoTCentral.PublicacaoModBus = messageBodyModbus.PublishTimestamp;
+                    messageBodyIoTCentral.PublicacaoCentral = DateTime.Now;
+                    if (messageBodyModbus.Content != null && messageBodyModbus.Content.Count > 0)
+                    {
+                        //HwId
+                        messageBodyIoTCentral.HwId = messageBodyModbus.Content[0].HwId;
+
+                        //throw new Exception("mensagem alterada, confirmar novo padrão");
+
+                        //Trata corpo da mensagem
+                        if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 0)
+                        {
+                            foreach (Data data in messageBodyModbus.Content[0].Data)
+                            {
+                                foreach (Values value in data.Values)
+                                {
+                                    switch (value.DisplayName)
+                                    {
+                                        case "NivelSuperior":
+                                            messageBodyIoTCentral.NivelReservatorioSuperior = ObterValorInteiroRealOuSimulado(null);
+                                            break;
+                                        case "NivelInferior":
+                                            messageBodyIoTCentral.NivelReservatorioInferior = ObterValorInteiroRealOuSimulado(null);
+                                            break;
+                                        case "VazaoEntrada":
+                                            messageBodyIoTCentral.VazaoEntrada = ObterValorInteiroRealOuSimulado(null);
+                                            break;
+                                        case "VazaoSaida":
+                                            messageBodyIoTCentral.VazaoSaida = ObterValorInteiroRealOuSimulado(null);
+                                            break;
+                                        case "StatusBomba1":
+                                            messageBodyIoTCentral.StatusBomba1 = ObterValorBooleanoRealOuSimulado(null);
+                                            break;
+                                        case "StatusBomba2":
+                                            messageBodyIoTCentral.StatusBomba2 = ObterValorBooleanoRealOuSimulado(null);
+                                            break;
+                                        case "FalhaBomba1":
+                                            messageBodyIoTCentral.FalhaBomba1 = ObterValorBooleanoRealOuSimulado(null);
+                                            break;
+                                        case "FalhaBomba2":
+                                            messageBodyIoTCentral.FalhaBomba2 = ObterValorBooleanoRealOuSimulado(null);
+                                            break;
+                                        default:
+                                            Util.Log($"Nome de dispositivo nao reconhecido: {value}");
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+
+                        //calculando Indicadores secundarios
+                        Indicator.CalcularIndicadores(messageBodyIoTCentral);
+
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Util.LogErro($"Erro ao transformar objetos: {ex}");
+            }
+            return messageBodyIoTCentral;
         }
 
         public static int ObterValorInteiroRealOuSimulado(Values value)
@@ -534,7 +580,7 @@ namespace IotEdgeModuloCentral
                 int cont = 0;
                 foreach (Exception exception in ex.InnerExceptions)
                 {
-                    Util.Log($"[FilterMessages] - Erro{cont++}: {exception}");
+                    Util.LogErro($"[FilterMessages] - Erro{cont++}: {exception}");
                 }
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
@@ -543,7 +589,7 @@ namespace IotEdgeModuloCentral
             }
             catch (Exception ex)
             {
-                Util.Log($"[FilterMessages] - Erro: {ex}");
+                Util.LogErro($"[FilterMessages] - Erro: {ex}");
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
                 ModuleClient moduleClient = (ModuleClient)userContext;

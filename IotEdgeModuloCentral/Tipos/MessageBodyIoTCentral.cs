@@ -13,12 +13,11 @@ namespace IotEdgeModuloCentral.Tipos
             "NivelReservatorioInferior": 850,
             "VazaoEntrada": 250,
             "StatusBomba1": false,
-            "StatusBomba2”: false,
-            "ValvulaCorte": true
+            "StatusBomba2”: false
         }
     */
 
-    class MessageBodyIoTCentral
+    public class MessageBodyIoTCentral
     {
         public string HwId { get; set; }
         public DateTime PublicacaoCLP { get; set; }
@@ -30,6 +29,7 @@ namespace IotEdgeModuloCentral.Tipos
         public int VazaoEntrada { get; set; }
         public bool StatusBomba1 { get; set; }
         public bool StatusBomba2 { get; set; }
-        public bool ValvulaCorte { get; set; }
+        public bool FalhaBomba1 { get; internal set; }
+        public bool FalhaBomba2 { get; internal set; }
     }
 }
