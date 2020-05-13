@@ -4,7 +4,7 @@ using System.Text;
 
 namespace IotEdgeModuloCentral.Tipos
 {
-    class Device
+    public class Device
     {
         public string Name { get; set; }
         public string HwId { get; set; }

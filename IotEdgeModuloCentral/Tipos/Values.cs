@@ -1,6 +1,6 @@
 ﻿namespace IotEdgeModuloCentral.Tipos
 {
-    class Values
+    public class Values
     {
         //{
         //    "PublishTimestamp": "2020-03-25 23:36:51",

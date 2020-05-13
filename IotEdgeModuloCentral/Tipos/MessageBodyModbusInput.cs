@@ -1,6 +1,6 @@
 ﻿namespace IotEdgeModuloCentral.Tipos
 {
-    class MessageBodyModbusInput
+    public class MessageBodyModbusInput
     {
         /*
             {

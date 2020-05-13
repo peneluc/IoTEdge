@@ -12,7 +12,7 @@ namespace IotEdgeModuloCentral.Tipos
         }
     */
 
-    class MessageIoTCentralOutput
+    public class MessageIoTCentralOutput
     {
         public DateTime PublishTimestamp { get; set; }
         public string HwId { get; set; }

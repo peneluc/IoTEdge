@@ -23,7 +23,7 @@ namespace IotEdgeModuloCentral.Tipos
     //    }
     //    ]
     //}
-    class Content
+    public class Content
     {
         public string HwId { get; set; }
         public List<Data> Data { get; set; }

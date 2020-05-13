@@ -25,7 +25,7 @@ namespace IotEdgeModuloCentral.Tipos
     //    ]
     //}
 
-    class MessageBodyModbusOutput
+    public class MessageBodyModbusOutput
     {
         public DateTime PublishTimestamp { get; set; }
         public List<Content> Content { get; set; }

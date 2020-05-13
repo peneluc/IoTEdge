@@ -1,4 +1,5 @@
-﻿using IotEdgeModuloCentral.Tipos;
+﻿using IotEdgeModuloCentral.Helpers;
+using IotEdgeModuloCentral.Tipos;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Diagnostics;
@@ -7,12 +8,16 @@ namespace IotEdgeModuloCentral
 {
     public static class Util
     {
+        public static DatabaseHelper Database = new DatabaseHelper();
+
+        public static void Log(Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+
         public static void Log(string msg)
         {
-            //if (1==0)
-            //{
-            //    Console.WriteLine(msg);
-            //}
+            Console.WriteLine(msg);
         }
 
         public static void LogFixo(string msg)

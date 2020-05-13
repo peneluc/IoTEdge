@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace IotEdgeModuloCentral.Tipos
 {
-    class Data
+    public class Data
     {
         //{
         //    "PublishTimestamp": "2020-03-25 23:36:51",
