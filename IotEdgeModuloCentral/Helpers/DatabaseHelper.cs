@@ -1,42 +1,48 @@
 ﻿using IotEdgeModuloCentral.Tipos;
-using Microsoft.Azure.Devices.Client;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace IotEdgeModuloCentral.Helpers
 {
     public class DatabaseHelper : IDatabaseHelper
     {
-        private SQLiteConnection con()
+        public DatabaseHelper()
         {
-            SQLiteConnection con = null;
+            Util.Log.Log($"[DatabaseHelper] Iniciando helper...");
+        }
+
+        private SQLiteConnection conn;
+        private SQLiteConnection GetConnection()
+        {
             try
             {
-                if (con.State != ConnectionState.Open) 
+                if (conn != null)
                 {
-                    string cs = @"URI=file:cim.db";
-                    con = new SQLiteConnection(cs);
-                    con.Open();
+                    conn.Close();
+                    conn = null;
                 }
+                string cs = @"URI=file:cim.db;"+
+                            "Version=3;Mode=ReadWrite;New=False;Compress=True;Journal Mode=Off;";
+                conn = new SQLiteConnection(cs);
+                conn.Open();
+
+                Util.Log.Log($"[DatabaseHelper.GetConnection] conn.State = {conn.State} " +
+                             $"- conn.ConnectionString = {conn.ConnectionString} " +
+                             $"- conn.FileName = {conn.FileName} ");
             }
             catch (Exception ex)
             {
-                Util.Log($"[con] - Erro: {ex}");
+                Util.Log.Error($"[DatabaseHelper.GetConnection] - Erro: {ex}");
             }
-            return con;
+            return conn;
         }
 
         public void OpenOrCreateDatabase()
         {
             try
             {
-                using (var cmd = con().CreateCommand())
+                using (var cmd = new SQLiteCommand())
                 {
                     cmd.CommandText = "CREATE TABLE IF NOT EXISTS " +
                                       "Message (" +
@@ -51,55 +57,113 @@ namespace IotEdgeModuloCentral.Helpers
                                                 "VazaoEntrada Varchar(50), " +
                                                 "StatusBomba1 Varchar(50), " +
                                                 "StatusBomba2 Varchar(50))";
-                    cmd.ExecuteNonQuery();
+
+                    Util.Log.Log($"[DatabaseHelper.OpenOrCreateDatabase] cmd.CommandText = {cmd.CommandText} ");
+                    ExecuteNonQuery(cmd);
                 }
             }
             catch (Exception ex)
             {
-                Util.Log($"[OpenCreateDatabase] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.OpenCreateDatabase] - Erro: {ex}");
             }
+        }
+
+        public int ExecuteNonQuery(SQLiteCommand cmd)
+        {
+            try
+            {
+                if (cmd != null)
+                {
+                    cmd.Connection = GetConnection();
+                    var rows = cmd.ExecuteNonQuery();
+                    cmd = null;
+                    return rows;
+                }
+            }
+            catch (Exception ex)
+            {
+                Util.Log.Log($"[DatabaseHelper.OpenCreateDatabase] - Erro: {ex}");
+            }
+            return 0;
+        }
+
+        public DataTable ExecuteDataTable(SQLiteCommand cmd)
+        {
+            DataTable dt = null;
+            try
+            {
+                if (cmd != null)
+                {
+                    SQLiteDataAdapter da = null;
+                    cmd.Connection = GetConnection();
+                    da = new SQLiteDataAdapter(cmd);
+                    da.Fill(dt);
+                    cmd = null;
+                    da = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Util.Log.Log($"[DatabaseHelper.OpenCreateDatabase] - Erro: {ex}");
+            }
+            return dt;
         }
 
         public DataTable GetAllMessage()
         {
-            OpenOrCreateDatabase();
-            SQLiteDataAdapter da = null;
-            DataTable dt = new DataTable();
+            DataTable dt = null;
             try
             {
-                using (var cmd = con().CreateCommand())
+                using (var cmd = new SQLiteCommand("SELECT * FROM Message"))
                 {
-                    cmd.CommandText = "SELECT * FROM Message";
-                    da = new SQLiteDataAdapter(cmd);
-                    da.Fill(dt);
+                    dt = ExecuteDataTable(cmd);
+                    Util.Log.Log($"[DatabaseHelper.GetAllMessage] cmd.CommandText = {cmd.CommandText} ");
                 }
             }
             catch (Exception ex)
             {
-                Util.Log($"[GetAllMessage] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.GetAllMessage] - Erro: {ex}");
+            }
+            return dt;
+        }
+        public DataTable GetAllMessage(int limite, string ordenacao)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                using (var cmd = GetConnection().CreateCommand())
+                {
+                    cmd.CommandText = "SELECT * FROM Message ORDER BY @ordenacao LIMIT @limite";
+                    cmd.Parameters.AddWithValue("@ordenacao", ordenacao);
+                    cmd.Parameters.AddWithValue("@limite", limite);
+                    dt = ExecuteDataTable(cmd);
+                    Util.Log.Log($"[DatabaseHelper.GetAllMessage] cmd.CommandText = {cmd.CommandText} ");
+                }
+            }
+            catch (Exception ex)
+            {
+                Util.Log.Log($"[DatabaseHelper.GetAllMessage] - Erro: {ex}");
             }
             return dt;
         }
 
         public DataTable GetMessage(int id)
         {
-            OpenOrCreateDatabase();
-            SQLiteDataAdapter da = null;
-            DataTable dt = new DataTable();
+            DataTable dt = null;
             try
             {
-                using (var cmd = con().CreateCommand())
+                using (var cmd = new SQLiteCommand())
                 {
                     cmd.CommandText = "SELECT * FROM Message Where Id=@id";
                     var param = new SQLiteParameter("@id", SqlDbType.TinyInt) { Value = id };
                     cmd.Parameters.Add(param);
-                    da = new SQLiteDataAdapter(cmd);
-                    da.Fill(dt);
+                    dt = ExecuteDataTable(cmd);
+                    Util.Log.Log($"[DatabaseHelper.GetMessage] cmd.CommandText = {cmd.CommandText} ");
                 }
             }
             catch (Exception ex)
             {
-                Util.Log($"[GetMessage] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.GetMessage] - Erro: {ex}");
             }
             return dt;
         }
@@ -108,8 +172,7 @@ namespace IotEdgeModuloCentral.Helpers
         {
             try
             {
-                OpenOrCreateDatabase();
-                using (var cmd = con().CreateCommand())
+                using (var cmd = new SQLiteCommand())
                 {
                     cmd.CommandText = "INSERT INTO " +
                                       "Message(HwId, " +
@@ -143,12 +206,36 @@ namespace IotEdgeModuloCentral.Helpers
                     cmd.Parameters.AddWithValue("@StatusBomba1", message.StatusBomba1);
                     cmd.Parameters.AddWithValue("@StatusBomba2", message.StatusBomba2);
 
-                    cmd.ExecuteNonQuery();
+                    Util.Log.Log($"[DatabaseHelper.AddMessage] cmd.CommandText = {cmd.CommandText} ");
+
+                    ExecuteNonQuery(cmd);
                 }
             }
             catch (Exception ex)
             {
-                Util.Log($"[AddMessage] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.AddMessage] - Erro: {ex}");
+            }
+        }
+
+        internal void PrintRows(int v1, string v2)
+        {
+            try
+            {
+                var cont = 0;
+                var dt = GetAllMessage(v1, v2).CreateDataReader();
+                while ((dt.Read()) && (cont < v1))
+                {
+                    for (int i = 0; i < dt.FieldCount; i++)
+                    {
+                        Console.WriteLine(dt.GetValue(i));
+                    }
+                    Console.WriteLine();
+                    cont++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Util.Log.Log($"[DatabaseHelper.PrintRows] - Erro: {ex}");
             }
         }
 
@@ -156,9 +243,7 @@ namespace IotEdgeModuloCentral.Helpers
         {
             try
             {
-                OpenOrCreateDatabase();
-
-                using (var cmd = new SQLiteCommand(con()))
+                using (var cmd = new SQLiteCommand())
                 {
                     if ((id > 0) && (message != null))
                     {
@@ -186,13 +271,15 @@ namespace IotEdgeModuloCentral.Helpers
                         cmd.Parameters.AddWithValue("@StatusBomba1", message.StatusBomba1);
                         cmd.Parameters.AddWithValue("@StatusBomba2", message.StatusBomba2);
 
-                        cmd.ExecuteNonQuery();
+                        Util.Log.Log($"[DatabaseHelper.Update] cmd.CommandText = {cmd.CommandText} ");
+
+                        ExecuteNonQuery(cmd);
                     }
                 };
             }
             catch (Exception ex)
             {
-                Util.Log($"[Update] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.Update] - Erro: {ex}");
             }
         }
 
@@ -200,17 +287,18 @@ namespace IotEdgeModuloCentral.Helpers
         {
             try
             {
-                OpenOrCreateDatabase();
-                using (var cmd = new SQLiteCommand(con()))
+                using (var cmd = new SQLiteCommand())
                 {
                     cmd.CommandText = "DELETE FROM Message Where Id=@Id";
                     cmd.Parameters.AddWithValue("@Id", id);
-                    cmd.ExecuteNonQuery();
+                    ExecuteNonQuery(cmd);
+
+                    Util.Log.Log($"[DatabaseHelper.Delete] cmd.CommandText = {cmd.CommandText} ");
                 }
             }
             catch (Exception ex)
             {
-                Util.Log($"[Delete] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.Delete] - Erro: {ex}");
             }
         }
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace IotEdgeModuloCentral.Tipos
+﻿namespace IotEdgeModuloCentral.Tipos
 {
     public class Device
     {

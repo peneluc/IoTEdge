@@ -1,13 +1,13 @@
 ﻿using IotEdgeModuloCentral.Tipos;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace IotEdgeModuloCentral
 {
     public static class Indicator
     {
         //CONSTANTES
+
+        #region Constantes
 
         //valor MAXIMO retornado pelo sensor de nivel (representa 100%)
         const int CONST_NIVEL_SUPERIOR_VALOR_MAXIMO = 11122;
@@ -27,8 +27,15 @@ namespace IotEdgeModuloCentral
         const int CONST_NIVEL_INFERIOR_LIMITE_MAXIMO = 10;
         const int CONST_NIVEL_INFERIOR_LIMITE_MINIMO = 10;
 
+        #endregion
+
         //VARIAVEL
+
+        #region Variaveis
+
         private static MessageBodyIoTCentral messageBodyIoTCentral;
+
+        #endregion
 
 
         public static void CalcularIndicadores(MessageBodyIoTCentral message)
@@ -83,6 +90,8 @@ namespace IotEdgeModuloCentral
         }
 
 
+
+
         //ESCOPO FINAL DE INDICADORES
 
         //GERENCIAMENTO DOS RESERVATÓRIOS
@@ -102,12 +111,12 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = (messageBodyIoTCentral.NivelReservatorioSuperior*100)/ CONST_NIVEL_SUPERIOR_VALOR_MAXIMO;
+                resultado = (messageBodyIoTCentral.NivelReservatorioSuperior * 100) / CONST_NIVEL_SUPERIOR_VALOR_MAXIMO;
             }
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [ReservatorioSuperiorNivelPercentual] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -124,7 +133,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [ReservatorioInferiorNivelPercentual] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -152,7 +161,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [ReservatorioVolumeTotal] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -170,7 +179,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [ReservatorioVolumeTotal] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -189,7 +198,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [ReservatorioVolumeTotal] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -222,12 +231,12 @@ namespace IotEdgeModuloCentral
                 var volumeTotal = ReservatoriosVolumeTotalAtual();
                 var consumo24horas = ObterConsumoTotal24Horas();
 
-                resultado = volumeTotal/consumo24horas;
+                resultado = volumeTotal / consumo24horas;
             }
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [AutonomiaBaseadaEm24horasDeConsumo] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -238,7 +247,11 @@ namespace IotEdgeModuloCentral
         {
             //obter valor do banco
             var valor = new Random().Next(5000, 6000);
-            Util.MetodoNaoImplementado("ObterConsumoTotal24Horas", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterConsumoTotal24Horas", valor.ToString());
+
+            ///Util.Log.Database.Indicadores.ObterConsumoTotal24Horas();
+
+
             return valor;
         }
 
@@ -272,7 +285,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [AutonomiaBaseadaEm1HoraDeConsumo] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -282,7 +295,7 @@ namespace IotEdgeModuloCentral
         private static float ObterConsumoTotalUltimaHora()
         {
             var valor = new Random().Next(5000, 6000);
-            Util.MetodoNaoImplementado("ObterConsumoTotalUltimaHora", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterConsumoTotalUltimaHora", valor.ToString());
             return valor;
         }
 
@@ -315,7 +328,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [BombaQuantidadeAcionamento] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -324,7 +337,7 @@ namespace IotEdgeModuloCentral
         private static int ObterQuantidadeAcionamentoEm24Horas()
         {
             var valor = new Random().Next(5000, 6000);
-            Util.MetodoNaoImplementado("ObterQuantidadeAcionamentoEm24Horas", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterQuantidadeAcionamentoEm24Horas", valor.ToString());
             return valor;
         }
 
@@ -339,7 +352,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [BombaQuantidadeAcionamento] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -348,7 +361,7 @@ namespace IotEdgeModuloCentral
         private static int ObterQuantidadeAcionamentoEm30Dias()
         {
             var valor = new Random().Next(10, 100);
-            Util.MetodoNaoImplementado("ObterQuantidadeAcionamentoEm30Dias", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterQuantidadeAcionamentoEm30Dias", valor.ToString());
             return valor;
         }
 
@@ -391,7 +404,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [BombaFuncionamentoTempo] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -400,7 +413,7 @@ namespace IotEdgeModuloCentral
         private static int ObterBombaFuncionamentoTempo()
         {
             var valor = new Random().Next(10, 100);
-            Util.MetodoNaoImplementado("ObterBombaFuncionamentoTempo", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterBombaFuncionamentoTempo", valor.ToString());
             return valor;
         }
 
@@ -428,7 +441,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [MedidorVazaoConsumo30dias] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -437,7 +450,7 @@ namespace IotEdgeModuloCentral
         private static int ObterMedidorVazaoConsumo30dias()
         {
             var valor = new Random().Next(5000, 50000);
-            Util.MetodoNaoImplementado("ObterMedidorVazaoConsumo30dias", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterMedidorVazaoConsumo30dias", valor.ToString());
             return valor;
         }
 
@@ -452,7 +465,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [MedidorVazaoConsumo1Dia] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -461,7 +474,7 @@ namespace IotEdgeModuloCentral
         private static int ObterMedidorVazaoConsumo1Dia()
         {
             var valor = new Random().Next(100, 1000);
-            Util.MetodoNaoImplementado("ObterMedidorVazaoConsumo1Dia", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterMedidorVazaoConsumo1Dia", valor.ToString());
             return valor;
         }
 
@@ -476,7 +489,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [MedidorVazaoConsumo1Hora] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -485,7 +498,7 @@ namespace IotEdgeModuloCentral
         private static int ObterMedidorVazaoConsumo1Hora()
         {
             var valor = new Random().Next(10, 100);
-            Util.MetodoNaoImplementado("ObterMedidorVazaoConsumo1Hora", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterMedidorVazaoConsumo1Hora", valor.ToString());
             return valor;
         }
 
@@ -514,7 +527,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [MetaConsumoMensal] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -523,7 +536,7 @@ namespace IotEdgeModuloCentral
         private static int ObterMetaConsumoMensal()
         {
             var valor = new Random().Next(10, 100);
-            Util.MetodoNaoImplementado("ObterMetaConsumoMensal", valor.ToString());
+            Util.Log.MetodoNaoImplementado("ObterMetaConsumoMensal", valor.ToString());
             return valor;
         }
 
@@ -543,7 +556,7 @@ namespace IotEdgeModuloCentral
             try
             {
                 var nivel = ReservatorioSuperiorNivelPercentualAtual();
-                var nivelMaximo = CONST_NIVEL_SUPERIOR_LIMITE_MAXIMO - ((CONST_RESERVATORIO_SUPERIOR_CAPACIDADE_MAXIMA * CONST_NIVEL_SUPERIOR_LIMITE_MAXIMO)/100);
+                var nivelMaximo = CONST_NIVEL_SUPERIOR_LIMITE_MAXIMO - ((CONST_RESERVATORIO_SUPERIOR_CAPACIDADE_MAXIMA * CONST_NIVEL_SUPERIOR_LIMITE_MAXIMO) / 100);
                 if (nivel < nivelMaximo)
                 {
                     resultado = true;
@@ -552,7 +565,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -574,7 +587,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 
@@ -594,7 +607,7 @@ namespace IotEdgeModuloCentral
             catch (Exception ex)
             {
                 var msg = $"Erro ao calcular o Indicador [AlarmeReservatorioVazamento] - exc: {ex}";
-                Util.LogErro(msg);
+                Util.Log.Error(msg);
                 throw new Exception(msg, ex);
             }
 

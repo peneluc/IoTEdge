@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace IotEdgeModuloCentral.Helpers
 {
-    public static class MessageHelper
+    public class MessageHelper
     {
 
         #region Variaveis
@@ -17,19 +17,21 @@ namespace IotEdgeModuloCentral.Helpers
         /// <summary>
         /// Propriedade que armazena o contador de mensagens *encaminhadas*
         /// </summary>
-        private static int _totalMensagensEncaminhadas;
+        private int _totalMensagensEncaminhadas;
 
         /// <summary>
         /// Propriedade que armazena o contador de mensagens *recebidas*
         /// </summary>
-        private static int _totalMensagensRecebidas;
+        private int _totalMensagensRecebidas;
 
         /// <summary>
         /// Propriedade com nome do módulo de *saída* das mensagens
         /// </summary>
-        private static Device medidoDeNivel = null;
-        public static Device MedidoDeNivel { get => medidoDeNivel; set => medidoDeNivel = value; }
-        public static void StartObjects()
+        private Device medidoDeNivel = null;
+        public Device MedidoDeNivel { get => medidoDeNivel; set => medidoDeNivel = value; }
+
+
+        public void StartObjects()
         {
             MedidoDeNivel = new Device();
             MedidoDeNivel.Name = "Rasp001";
@@ -49,7 +51,7 @@ namespace IotEdgeModuloCentral.Helpers
         /// "FROM /messages/modules/modbusToIoTHub/outputs/* 
         /// INTO BrokeredEndpoint(\"/modules/IotEdgeModuloCentral/inputs/input1\")",
         /// </summary>
-        public const string CONST_MODCENTRAL_INPUT_MSG_FROM_MODBUS = "input1";
+        public string CONST_MODCENTRAL_INPUT_MSG_FROM_MODBUS => "input1";
 
         /// <summary>
         /// Propriedade com nome do módulo de *entrada* das mensagens
@@ -80,89 +82,109 @@ namespace IotEdgeModuloCentral.Helpers
         /// <summary>
         /// Propriedade com nome do módulo de *saída* das mensagens
         /// </summary>
-        public const string CONST_DEVICE_NAME_WRITE_PORT = "BombaPortaEscrita";
+        public string CONST_DEVICE_NAME_WRITE_PORT => "BombaPortaEscrita";
 
         #endregion
 
 
         #region Suporte
 
-        public static int ObterValorInteiroRealOuSimulado(Values value)
+        public int ObterValorInteiroRealOuSimulado(Values value)
         {
             Random rnd = new Random();
             int retorno = 0;
 
-            if (string.IsNullOrEmpty(value.Value))
+            if ((value == null) ||
+                (string.IsNullOrEmpty(value.Value)))
+            {
                 retorno = rnd.Next(1, 100);
+                Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor simulado: {retorno}");
+            }
             else
+            {
                 retorno = int.Parse(value.Value);
+                Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor real: {retorno}");
+            }
 
             return retorno;
         }
 
-        public static bool ObterValorBooleanoRealOuSimulado(Values value)
+        public bool ObterValorBooleanoRealOuSimulado(Values value)
         {
             Random rnd = new Random();
             bool retorno = false;
 
-            if (string.IsNullOrEmpty(value.Value))
+            if ((value == null) ||
+                (string.IsNullOrEmpty(value.Value)))
+            {
                 retorno = rnd.Next(1, 100) < 50;
+                Util.Log.Error($"[ObterValorBooleanoRealOuSimulado] - Valor simulado: {retorno}");
+            }
             else
+            {
                 retorno = bool.Parse(value.Value);
+                Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor real: {retorno}");
+            }
 
             return retorno;
         }
 
-        private static void MessageSendCount(string message)
+        private void MessageSendCount(string message)
         {
             var totalMensagensEncaminhadas = Interlocked.Increment(ref _totalMensagensEncaminhadas);
-            Util.LogFixo($"[MessageSendCount] - Info: ***  Mensagem encaminhada! Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {message} ***");
+            Util.Log.Info($"[MessageSendCount] - Info: ***  Mensagem encaminhada! Total: {totalMensagensEncaminhadas}, Corpo da Mensagem: {message} ***");
         }
 
-        private static void MessageReceivedCount(string message)
+        private void MessageReceivedCount(string message)
         {
             var totalMensagensRecebidas = Interlocked.Increment(ref _totalMensagensRecebidas);
-            Util.LogFixo($"[MessageSendCount] - Info: ***  Mensagem encaminhada! Total: {totalMensagensRecebidas}, Corpo da Mensagem: {message} ***");
+            Util.Log.Info($"[MessageReceivedCount] - Info: ***  Mensagem encaminhada! Total: {totalMensagensRecebidas}, Corpo da Mensagem: {message} ***");
         }
 
-        #endregion
-
-        #region Enviar Comandos
-
-        public static async Task<MethodResponse> LigarMedidorDeNivel(MethodRequest methodRequest, object userContext)
+        public MessageBodyModbusOutput ObterMessageBodyModbusOutput(Message message)
         {
-            Util.Log($"[LigarMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
-            var retorno = await EnviarMensagemMedidorDeNivel("1", userContext);
-            Util.Log($"[LigarMedidoDeNivel] - Info: Fim - {DateTime.Now}");
-            return retorno;
-        }
-
-        public static async Task<MethodResponse> DesligarMedidorDeNivel(MethodRequest methodRequest, object userContext)
-        {
-            Util.Log($"[DesligarMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
-            var retorno = await EnviarMensagemMedidorDeNivel("0", userContext);
-            Util.Log($"[DesligarMedidoDeNivel] - Info: Fim - {DateTime.Now}");
-            return retorno;
-        }
-
-        public static async Task<MethodResponse> PiscarLED(MethodRequest methodRequest, object userContext)
-        {
-            Util.Log($"[PiscarLED] - Inicio");
-            for (int i = 0; i < 10; i++)
+            var messageBytes = message.GetBytes();
+            if (messageBytes == null)
             {
-                await LigarMedidorDeNivel(null, userContext);
-                await Task.Delay(1000);
-                await DesligarMedidorDeNivel(null, userContext);
+                throw new InvalidOperationException("[ObterMessageBodyModbusOutput] - Erro: messageBytes igual a null!");
             }
-            Util.Log($"[PiscarLED] - Fim");
-            return new MethodResponse(new byte[0], 200);
+
+            var messageString = Encoding.UTF8.GetString(messageBytes);
+            if (messageString == null)
+            {
+                throw new InvalidOperationException("[ObterMessageBodyModbusOutput] - Erro: messageString igual a null");
+            }
+
+            MessageReceivedCount(messageString);
+
+            MessageBodyModbusOutput messageBodyModbus = null;
+            try
+            {
+                Util.Log.Error($"[ObterMessageBodyModbusOutput] - Info: 5 - Deserializa a mensagem em um objeto");
+                messageBodyModbus = JsonConvert.DeserializeObject<MessageBodyModbusOutput>(messageString);
+            }
+            catch (Exception ex)
+            {
+                Util.Log.Error($"[ObterMessageBodyModbusOutput] - Erro: {ex}");
+                if (string.IsNullOrEmpty(messageString))
+                {
+                    throw new InvalidOperationException($"Falha ao deserializar messageString: {messageString}");
+                }
+                else
+                {
+                    Util.Log.Error($"[ObterMessageBodyModbusOutput] - Erro: {messageString}");
+                }
+            }
+
+            return messageBodyModbus;
         }
 
-        public static MessageBodyIoTCentral CriandoMensagemIoTCentral(MessageBodyModbusOutput messageBodyModbus)
+        public MessageBodyIoTCentral ObterMessageBodyIoTCentral(MessageBodyModbusOutput messageBodyModbus)
         {
             MessageBodyIoTCentral messageBodyIoTCentral = new MessageBodyIoTCentral();
             try
             {
+                #region modelo
                 /*
                  * ENTRADA
                     {
@@ -214,6 +236,8 @@ namespace IotEdgeModuloCentral.Helpers
                         "ValvulaCorte": true
                     }
                 */
+                #endregion
+
                 if (messageBodyModbus != null)
                 {
                     //PublishTimestamp
@@ -237,30 +261,38 @@ namespace IotEdgeModuloCentral.Helpers
                                     {
                                         case "NivelSuperior":
                                             messageBodyIoTCentral.NivelReservatorioSuperior = ObterValorInteiroRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - NivelSuperior");
                                             break;
                                         case "NivelInferior":
                                             messageBodyIoTCentral.NivelReservatorioInferior = ObterValorInteiroRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - NivelInferior");
                                             break;
                                         case "VazaoEntrada":
                                             messageBodyIoTCentral.VazaoEntrada = ObterValorInteiroRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - VazaoEntrada");
                                             break;
                                         case "VazaoSaida":
                                             messageBodyIoTCentral.VazaoSaida = ObterValorInteiroRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - VazaoSaida");
                                             break;
                                         case "StatusBomba1":
                                             messageBodyIoTCentral.StatusBomba1 = ObterValorBooleanoRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusBomba1");
                                             break;
                                         case "StatusBomba2":
                                             messageBodyIoTCentral.StatusBomba2 = ObterValorBooleanoRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusBomba2");
                                             break;
                                         case "FalhaBomba1":
                                             messageBodyIoTCentral.FalhaBomba1 = ObterValorBooleanoRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - FalhaBomba1");
                                             break;
                                         case "FalhaBomba2":
                                             messageBodyIoTCentral.FalhaBomba2 = ObterValorBooleanoRealOuSimulado(null);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - FalhaBomba2");
                                             break;
                                         default:
-                                            Util.Log($"Nome de dispositivo nao reconhecido: {value}");
+                                            Util.Log.Info($"[ObterMessageBodyIoTCentral] Nome de dispositivo nao reconhecido: {value}");
                                             break;
                                     }
                                 }
@@ -269,28 +301,65 @@ namespace IotEdgeModuloCentral.Helpers
 
                         //calculando Indicadores secundarios
                         Indicator.CalcularIndicadores(messageBodyIoTCentral);
-
                     }
                 }
 
             }
             catch (Exception ex)
             {
-                Util.LogErro($"Erro ao transformar objetos: {ex}");
+                Util.Log.Error($"Erro ao transformar objetos: {ex}");
             }
+
+            //Salva mensagem no banco
             Util.Database.AddMessage(messageBodyIoTCentral);
+
             return messageBodyIoTCentral;
         }
+
+
+        #endregion
+
+        #region Enviar Comandos
+
+        public async Task<MethodResponse> LigarMedidorDeNivel(MethodRequest methodRequest, object userContext)
+        {
+            Util.Log.Log($"[LigarMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
+            var retorno = await EnviarMensagemMedidorDeNivel("1", userContext);
+            Util.Log.Log($"[LigarMedidoDeNivel] - Info: Fim - {DateTime.Now}");
+            return retorno;
+        }
+
+        public async Task<MethodResponse> DesligarMedidorDeNivel(MethodRequest methodRequest, object userContext)
+        {
+            Util.Log.Log($"[DesligarMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
+            var retorno = await EnviarMensagemMedidorDeNivel("0", userContext);
+            Util.Log.Log($"[DesligarMedidoDeNivel] - Info: Fim - {DateTime.Now}");
+            return retorno;
+        }
+
+        public async Task<MethodResponse> PiscarLED(MethodRequest methodRequest, object userContext)
+        {
+            Util.Log.Log($"[PiscarLED] - Inicio");
+            for (int i = 0; i < 10; i++)
+            {
+                await LigarMedidorDeNivel(null, userContext);
+                await Task.Delay(1000);
+                await DesligarMedidorDeNivel(null, userContext);
+            }
+            Util.Log.Log($"[PiscarLED] - Fim");
+            return new MethodResponse(new byte[0], 200);
+        }
+
 
         #endregion
 
         #region Enviar Mensagens
 
-        public static async Task<string> EnviarMensagemIoTCentral(MessageBodyIoTCentral messageBodyIoTCentral, Message message, ModuleClient moduleClient)
+        public async Task<string> EnviarMensagemIoTCentral(MessageBodyIoTCentral messageBodyIoTCentral, Message message, ModuleClient moduleClient)
         {
             string messageString = string.Empty;
             byte[] messageBytes = new byte[0];
-            Util.Log($"[EnviarMensagemIoTCentral] - Info: 1 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
+            Util.Log.Log($"[EnviarMensagemIoTCentral] - Info: 1 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
             try
             {
                 string json = JsonConvert.SerializeObject(messageBodyIoTCentral);
@@ -298,36 +367,37 @@ namespace IotEdgeModuloCentral.Helpers
             }
             catch (Exception ex)
             {
-                Util.LogErro($"Erro ao capturar byteArray: {ex}");
+                Util.Log.Error($"Erro ao capturar byteArray: {ex}");
             }
 
-            Util.Log($"[EnviarMensagemIoTCentral] - Info: 2 - Cria evento e envia msg");
+            Util.Log.Log($"[EnviarMensagemIoTCentral] - Info: 2 - Cria evento e envia msg");
             using (var filteredMessage = new Message(messageBytes))
             {
                 foreach (KeyValuePair<string, string> prop in message.Properties)
                 {
                     filteredMessage.Properties.Add(prop.Key, prop.Value);
-                    Util.Log($"***  filteredMessage.Properties.Add({prop.Key}, {prop.Value}) ***");
+                    Util.Log.Log($"***  filteredMessage.Properties.Add({prop.Key}, {prop.Value}) ***");
                 }
 
-                Util.Log($"[FilterMessages] - Info: 3 - Envia evento de alerta");
+                Util.Log.Log($"[EnviarMensagemIoTCentral] - Info: 3 - Envia evento de alerta");
                 filteredMessage.Properties.Add("MessageType", "Alert");
                 await moduleClient.SendEventAsync(CONST_MODCENTRAL_OUTPUT_MSG_TO_IOTCENTRAL, filteredMessage); // <---------- envia mensagem iot central <-----------
 
-                Util.Log($"[FilterMessages] - Info: 4 - Converte corpo da mensagem em string e registra envio");
+                Util.Log.Log($"[EnviarMensagemIoTCentral] - Info: 4 - Converte corpo da mensagem em string e registra envio");
                 messageString = Encoding.UTF8.GetString(messageBytes);
+
                 MessageSendCount(messageString);
             }
-            Util.Log($"[EnviarMensagemIoTCentral] - Info: 5 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
+            Util.Log.Log($"[EnviarMensagemIoTCentral] - Info: 5 - Captura corpo de [messageBodyIoTCentral] em formato de bytes array");
 
             return messageString;
         }
 
-        public static async Task<MethodResponse> EnviarMensagemModbus(string HwId, string UId, string Address, string Value, object userContext)
+        public async Task<MethodResponse> EnviarMensagemModbus(string HwId, string UId, string Address, string Value, object userContext)
         {
-            Util.Log($"[EnviarMensagemModbus] - Info: Inicio - {DateTime.Now}");
+            Util.Log.Log($"[EnviarMensagemModbus] - Info: Inicio - {DateTime.Now}");
 
-            Util.Log($"[EnviarMensagemModbus] - Info: 1 - Inicializa instancia do ModuleClient");
+            Util.Log.Log($"[EnviarMensagemModbus] - Info: 1 - Inicializa instancia do ModuleClient");
             try
             {
                 ModuleClient moduleClient = (ModuleClient)userContext;
@@ -336,7 +406,7 @@ namespace IotEdgeModuloCentral.Helpers
                     throw new InvalidOperationException("Módulo cliente não instanciado");
                 }
 
-                Util.Log($"[EnviarMensagemModbus] - Info: 2 - Esse metodo eh chamado sempre que enviamos uma mensagem para o Modulo ModBus");
+                Util.Log.Log($"[EnviarMensagemModbus] - Info: 2 - Esse metodo eh chamado sempre que enviamos uma mensagem para o Modulo ModBus");
 
                 /*
                     {
@@ -355,24 +425,24 @@ namespace IotEdgeModuloCentral.Helpers
                     Value = Value,
                 };
 
-                Util.Log($"[EnviarMensagemModbus] - Info: 3 - Serializa o objeto em json");
+                Util.Log.Log($"[EnviarMensagemModbus] - Info: 3 - Serializa o objeto em json");
                 var jsonMessage = JsonConvert.SerializeObject(modbusMessageBody);
 
-                Util.Log($"[EnviarMensagemModbus] - Info: 4 - Transforma o json em array de bytes");
+                Util.Log.Log($"[EnviarMensagemModbus] - Info: 4 - Transforma o json em array de bytes");
                 var bytes = System.Text.Encoding.UTF8.GetBytes(jsonMessage);
 
-                Util.Log($"[EnviarMensagemModbus] - Info: 5 - Cria mensagem de input do ModBus e adiciona o array de bytes no corpo");
+                Util.Log.Log($"[EnviarMensagemModbus] - Info: 5 - Cria mensagem de input do ModBus e adiciona o array de bytes no corpo");
                 var pipeMessage = new Message(bytes);
 
-                Util.Log($"[EnviarMensagemModbus] - Info: 6 - Adiciona propriedade de escrita a mensagem do ModBus");
+                Util.Log.Log($"[EnviarMensagemModbus] - Info: 6 - Adiciona propriedade de escrita a mensagem do ModBus");
                 pipeMessage.Properties.Add("command-type", "ModbusWrite");
 
-                Util.Log($"[EnviarMensagemModbus] - Info: 7 - Envia a mensagem para o Modulo ModBus");
-                await moduleClient.SendEventAsync(MessageHelper.CONST_MODCENTRAL_OUTPUT_MSG_TO_MODBUS, pipeMessage);
+                Util.Log.Log($"[EnviarMensagemModbus] - Info: 7 - Envia a mensagem para o Modulo ModBus");
+                await moduleClient.SendEventAsync(CONST_MODCENTRAL_OUTPUT_MSG_TO_MODBUS, pipeMessage);
 
                 MessageSendCount(jsonMessage);
 
-                Util.Log($"[EnviarMensagemModbus] - Info: Fim - {DateTime.Now}");
+                Util.Log.Log($"[EnviarMensagemModbus] - Info: Fim - {DateTime.Now}");
                 return
                     //new MethodResponse(new byte[0], 200);
                     new MethodResponse(Encoding.UTF8.GetBytes("{\"EnviarMensagemModbus\":\"" + (Value) + "\"}"), 200);
@@ -382,7 +452,7 @@ namespace IotEdgeModuloCentral.Helpers
                 int cont = 0;
                 foreach (Exception exception in ex.InnerExceptions)
                 {
-                    Util.LogErro($"[FilterMessages] - Erro{cont++}: {exception}");
+                    Util.Log.Error($"[EnviarMensagemModbus] - Erro{cont++}: {exception}");
                 }
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
@@ -391,7 +461,7 @@ namespace IotEdgeModuloCentral.Helpers
             }
             catch (Exception ex)
             {
-                Util.LogErro($"[FilterMessages] - Erro: {ex}");
+                Util.Log.Error($"[EnviarMensagemModbus] - Erro: {ex}");
 
                 // Indica que o tratamento da mensagem NÃO foi concluído.
                 ModuleClient moduleClient = (ModuleClient)userContext;
@@ -400,19 +470,19 @@ namespace IotEdgeModuloCentral.Helpers
         }
 
 
-        public static async Task<MethodResponse> EnviarMensagemMedidorDeNivel(string value, object userContext)
+        public async Task<MethodResponse> EnviarMensagemMedidorDeNivel(string value, object userContext)
         {
-            Util.Log($"[EnviarMensagemMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
+            Util.Log.Log($"[EnviarMensagemMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
             var retorno = await EnviarMensagemMedidorDeNivel(MedidoDeNivel.PortWrite, value, userContext);
-            Util.Log($"[EnviarMensagemMedidoDeNivel] - Info: Fim - {DateTime.Now}");
+            Util.Log.Log($"[EnviarMensagemMedidoDeNivel] - Info: Fim - {DateTime.Now}");
             return retorno;
         }
 
-        public static async Task<MethodResponse> EnviarMensagemMedidorDeNivel(string porta, string value, object userContext)
+        public async Task<MethodResponse> EnviarMensagemMedidorDeNivel(string porta, string value, object userContext)
         {
-            Util.Log($"[EnviarMensagemMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
+            Util.Log.Log($"[EnviarMensagemMedidoDeNivel] - Info: Inicio - {DateTime.Now}");
             var retorno = await EnviarMensagemModbus(MedidoDeNivel.HwId, MedidoDeNivel.UId, porta, value, userContext);
-            Util.Log($"[EnviarMensagemMedidoDeNivel] - Info: Fim - {DateTime.Now}");
+            Util.Log.Log($"[EnviarMensagemMedidoDeNivel] - Info: Fim - {DateTime.Now}");
             return retorno;
         }
 
