@@ -1,9 +1,10 @@
-﻿using IotEdgeModuloCentral.Tipos;
+﻿using IotEdgeModuloCentral.Helpers;
+using IotEdgeModuloCentral.Tipos;
 using System;
 
 namespace IotEdgeModuloCentral
 {
-    public static class Indicator
+    public static class IndicatorHelper
     {
         //CONSTANTES
 
@@ -37,59 +38,29 @@ namespace IotEdgeModuloCentral
 
         #endregion
 
-
-        public static void CalcularIndicadores(MessageBodyIoTCentral message)
+        public static MessageDatabase CalcularIndicadores(MessageBodyIoTCentral message)
         {
             messageBodyIoTCentral = message;
 
-            //ESCOPO FINAL DE INDICADORES
+            var result = new MessageDatabase();
+            result.ReservatorioSuperiorNivelPercentualAtual = ReservatorioSuperiorNivelPercentualAtual();
+            result.ReservatorioInferiorNivelPercentualAtual = ReservatorioInferiorNivelPercentualAtual();
+            result.ReservatoriosVolumeTotalAtual = ReservatoriosVolumeTotalAtual();
+            result.AutonomiaBaseadaEm24horasDeConsumo = AutonomiaBaseadaEm24horasDeConsumo();
+            result.AutonomiaBaseadaEm1HoraDeConsumo = AutonomiaBaseadaEm1HoraDeConsumo();
+            result.BombaQuantidadeAcionamentoEm24Horas = BombaQuantidadeAcionamentoEm24Horas();
+            result.BombaQuantidadeAcionamentoEm30Dias = BombaQuantidadeAcionamentoEm30Dias();
+            result.BombaFuncionamentoTempo = BombaFuncionamentoTempo();
+            result.MedidorVazaoConsumo30dias = MedidorVazaoConsumo30dias();
+            result.MedidorVazaoConsumo1Dia = MedidorVazaoConsumo1Dia();
+            result.MedidorVazaoConsumo1Hora = MedidorVazaoConsumo1Hora();
+            result.MetaConsumoMensal = MetaConsumoMensal();
+            result.AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel = AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel();
+            result.AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel = AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel();
+            result.AlarmeReservatorioVazamento = AlarmeReservatorioVazamento();
 
-            //GERENCIAMENTO DOS RESERVATÓRIOS
-            ReservatorioSuperiorNivelPercentualAtual();
-            ReservatorioInferiorNivelPercentualAtual();
-
-            //Volume total dos reservatórios em m³
-            ReservatoriosVolumeTotalAtual();
-
-            //Autonomia em Horas baseada no consumo das últimas 24h
-            AutonomiaBaseadaEm24horasDeConsumo();
-
-            //Autonomia em Horas baseada no consumo instantâneo
-            AutonomiaBaseadaEm1HoraDeConsumo();
-
-
-            //GERENCIAMENTO DE BOMBAS
-
-            //STATUS DE FUNCIONAMENTO
-            BombaFuncionamentoTempo();
-
-            //QUANTIDADE DE ACIONAMENTO (QT DE X QUE BOTÃO LIGAR/DESLIGAR É ATIVADO)
-            BombaQuantidadeAcionamentoEm24Horas();
-            BombaQuantidadeAcionamentoEm30Dias();
-
-            //TEMPO DE FUNCIONAMENTO DA BOMBA(ACUMULA TEMPO ENTRE LIGAR E DESLIGAR BOMBA)
-            BombaFuncionamentoTempo();
-
-
-            //GERENCIAMENTO DE VAZÃO
-
-            //MEDIÇÃO DE CONSUMO ENTRADA/SAÍDA
-            MedidorVazaoConsumo30dias();
-            MedidorVazaoConsumo1Dia();
-            MedidorVazaoConsumo1Hora();
-
-            //Fórmula sugerida para cálculo de média/meta mensal
-            MetaConsumoMensal();
-
-            //ALARME PARA VAZÃO DOS RESERVATÓRIOS 
-            AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel();
-            AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel();
-
-            //ALARME DE VAZAMENTO
-            AlarmeReservatorioVazamento();
+            return result;
         }
-
-
 
 
         //ESCOPO FINAL DE INDICADORES
@@ -229,7 +200,7 @@ namespace IotEdgeModuloCentral
             try
             {
                 var volumeTotal = ReservatoriosVolumeTotalAtual();
-                var consumo24horas = ObterConsumoTotal24Horas();
+                var consumo24horas = DatabaseHelper.Indicator.ObterConsumoTotal24Horas();
 
                 resultado = volumeTotal / consumo24horas;
             }
@@ -241,18 +212,6 @@ namespace IotEdgeModuloCentral
             }
 
             return resultado;
-        }
-
-        private static float ObterConsumoTotal24Horas()
-        {
-            //obter valor do banco
-            var valor = new Random().Next(5000, 6000);
-            Util.Log.MetodoNaoImplementado("ObterConsumoTotal24Horas", valor.ToString());
-
-            ///Util.Log.Database.Indicadores.ObterConsumoTotal24Horas();
-
-
-            return valor;
         }
 
 
@@ -278,7 +237,7 @@ namespace IotEdgeModuloCentral
             try
             {
                 var volumeTotal = ReservatoriosVolumeTotalAtual();
-                var consumoTotalUltimaHora = ObterConsumoTotalUltimaHora();
+                var consumoTotalUltimaHora = DatabaseHelper.Indicator.ObterConsumoTotalUltimaHora();
 
                 resultado = volumeTotal / consumoTotalUltimaHora;
             }
@@ -290,13 +249,6 @@ namespace IotEdgeModuloCentral
             }
 
             return resultado;
-        }
-
-        private static float ObterConsumoTotalUltimaHora()
-        {
-            var valor = new Random().Next(5000, 6000);
-            Util.Log.MetodoNaoImplementado("ObterConsumoTotalUltimaHora", valor.ToString());
-            return valor;
         }
 
 
@@ -323,7 +275,7 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = ObterQuantidadeAcionamentoEm24Horas();
+                resultado = DatabaseHelper.Indicator.ObterQuantidadeAcionamentoEm24Horas();
             }
             catch (Exception ex)
             {
@@ -333,12 +285,6 @@ namespace IotEdgeModuloCentral
             }
 
             return resultado;
-        }
-        private static int ObterQuantidadeAcionamentoEm24Horas()
-        {
-            var valor = new Random().Next(5000, 6000);
-            Util.Log.MetodoNaoImplementado("ObterQuantidadeAcionamentoEm24Horas", valor.ToString());
-            return valor;
         }
 
         public static int BombaQuantidadeAcionamentoEm30Dias()
@@ -347,7 +293,7 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = ObterQuantidadeAcionamentoEm30Dias();
+                resultado = DatabaseHelper.Indicator.ObterQuantidadeAcionamentoEm30Dias();
             }
             catch (Exception ex)
             {
@@ -357,12 +303,6 @@ namespace IotEdgeModuloCentral
             }
 
             return resultado;
-        }
-        private static int ObterQuantidadeAcionamentoEm30Dias()
-        {
-            var valor = new Random().Next(10, 100);
-            Util.Log.MetodoNaoImplementado("ObterQuantidadeAcionamentoEm30Dias", valor.ToString());
-            return valor;
         }
 
 
@@ -399,7 +339,7 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = ObterBombaFuncionamentoTempo();
+                resultado = DatabaseHelper.Indicator.ObterBombaFuncionamentoTempo();
             }
             catch (Exception ex)
             {
@@ -409,12 +349,6 @@ namespace IotEdgeModuloCentral
             }
 
             return resultado;
-        }
-        private static int ObterBombaFuncionamentoTempo()
-        {
-            var valor = new Random().Next(10, 100);
-            Util.Log.MetodoNaoImplementado("ObterBombaFuncionamentoTempo", valor.ToString());
-            return valor;
         }
 
 
@@ -436,7 +370,7 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = ObterMedidorVazaoConsumo30dias();
+                resultado = DatabaseHelper.Indicator.ObterMedidorVazaoConsumo30dias();
             }
             catch (Exception ex)
             {
@@ -447,12 +381,6 @@ namespace IotEdgeModuloCentral
 
             return resultado;
         }
-        private static int ObterMedidorVazaoConsumo30dias()
-        {
-            var valor = new Random().Next(5000, 50000);
-            Util.Log.MetodoNaoImplementado("ObterMedidorVazaoConsumo30dias", valor.ToString());
-            return valor;
-        }
 
         public static int MedidorVazaoConsumo1Dia()
         {
@@ -460,7 +388,7 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = ObterMedidorVazaoConsumo1Dia();
+                resultado = DatabaseHelper.Indicator.ObterMedidorVazaoConsumo1Dia();
             }
             catch (Exception ex)
             {
@@ -471,12 +399,6 @@ namespace IotEdgeModuloCentral
 
             return resultado;
         }
-        private static int ObterMedidorVazaoConsumo1Dia()
-        {
-            var valor = new Random().Next(100, 1000);
-            Util.Log.MetodoNaoImplementado("ObterMedidorVazaoConsumo1Dia", valor.ToString());
-            return valor;
-        }
 
         public static int MedidorVazaoConsumo1Hora()
         {
@@ -484,7 +406,7 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = ObterMedidorVazaoConsumo1Hora();
+                resultado = DatabaseHelper.Indicator.ObterMedidorVazaoConsumo1Hora();
             }
             catch (Exception ex)
             {
@@ -494,12 +416,6 @@ namespace IotEdgeModuloCentral
             }
 
             return resultado;
-        }
-        private static int ObterMedidorVazaoConsumo1Hora()
-        {
-            var valor = new Random().Next(10, 100);
-            Util.Log.MetodoNaoImplementado("ObterMedidorVazaoConsumo1Hora", valor.ToString());
-            return valor;
         }
 
 
@@ -522,7 +438,7 @@ namespace IotEdgeModuloCentral
 
             try
             {
-                resultado = ObterMetaConsumoMensal();
+                resultado = DatabaseHelper.Indicator.ObterMetaConsumoMensal();
             }
             catch (Exception ex)
             {
@@ -532,12 +448,6 @@ namespace IotEdgeModuloCentral
             }
 
             return resultado;
-        }
-        private static int ObterMetaConsumoMensal()
-        {
-            var valor = new Random().Next(10, 100);
-            Util.Log.MetodoNaoImplementado("ObterMetaConsumoMensal", valor.ToString());
-            return valor;
         }
 
 
@@ -613,8 +523,6 @@ namespace IotEdgeModuloCentral
 
             return resultado;
         }
-
-
 
     } //class
 

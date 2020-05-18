@@ -299,8 +299,8 @@ namespace IotEdgeModuloCentral.Helpers
                             }
                         }
 
-                        //calculando Indicadores secundarios
-                        Indicator.CalcularIndicadores(messageBodyIoTCentral);
+                        //Salva mensagem no banco
+                        Util.Database.AddMessage(messageBodyIoTCentral);
                     }
                 }
 
@@ -309,9 +309,6 @@ namespace IotEdgeModuloCentral.Helpers
             {
                 Util.Log.Error($"Erro ao transformar objetos: {ex}");
             }
-
-            //Salva mensagem no banco
-            Util.Database.AddMessage(messageBodyIoTCentral);
 
             return messageBodyIoTCentral;
         }
