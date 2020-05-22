@@ -13,8 +13,6 @@ namespace IotEdgeModuloCentral.Helpers
 
         void AddMessage(MessageBodyIoTCentral message);
 
-        void Update(int id, MessageBodyIoTCentral message);
-
         void Delete(int id);
     }
 }

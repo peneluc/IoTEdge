@@ -193,7 +193,7 @@ namespace IotEdgeModuloCentral.Helpers
 
 
                 //calculando Indicadores secundarios
-                var message = IndicatorHelper.CalcularIndicadores(msg);
+                var message = new Indicators().GetMessage(msg);
 
                 using (var cmd = new SQLiteCommand())
                 {
@@ -250,32 +250,39 @@ namespace IotEdgeModuloCentral.Helpers
                                               "@AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel," +
                                               "@AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel," +
                                               "@AlarmeReservatorioVazamento)";
+
                     cmd.Parameters.AddWithValue("@HwId", msg.HwId);
                     cmd.Parameters.AddWithValue("@PublicacaoCLP", msg.PublicacaoCLP);
                     cmd.Parameters.AddWithValue("@PublicacaoModBus", msg.PublicacaoModBus);
                     cmd.Parameters.AddWithValue("@PublicacaoCentral", msg.PublicacaoCentral);
-                    cmd.Parameters.AddWithValue("@NivelReservatorioSuperior", msg.NivelReservatorioSuperior);
-                    cmd.Parameters.AddWithValue("@VazaoSaida", msg.VazaoSaida);
-                    cmd.Parameters.AddWithValue("@NivelReservatorioInferior", msg.NivelReservatorioInferior);
-                    cmd.Parameters.AddWithValue("@VazaoEntrada", msg.VazaoEntrada);
+
+                    cmd.Parameters.AddWithValue("@AcionamentoBomba1", msg.AcionamentoBomba1);
+                    cmd.Parameters.AddWithValue("@AcionamentoBomba2", msg.AcionamentoBomba2);
+                    cmd.Parameters.AddWithValue("@HidrometroEntrada", msg.HidrometroEntrada);
+                    cmd.Parameters.AddWithValue("@HidrometroSaida", msg.HidrometroSaida);
                     cmd.Parameters.AddWithValue("@StatusBomba1", msg.StatusBomba1);
                     cmd.Parameters.AddWithValue("@StatusBomba2", msg.StatusBomba2);
+                    cmd.Parameters.AddWithValue("@StatusFalhaBomba1", msg.StatusFalhaBomba1);
+                    cmd.Parameters.AddWithValue("@StatusFalhaBomba2", msg.StatusFalhaBomba2);
+                    cmd.Parameters.AddWithValue("@SondaDeNivelInferior", msg.SondaDeNivelInferior);
+                    cmd.Parameters.AddWithValue("@SondaDeNivelSuperior", msg.SondaDeNivelSuperior);
 
-                    cmd.Parameters.AddWithValue("@ReservatorioSuperiorNivelPercentualAtual", message.ReservatorioSuperiorNivelPercentualAtual);
-                    cmd.Parameters.AddWithValue("@ReservatorioInferiorNivelPercentualAtual", message.ReservatorioInferiorNivelPercentualAtual);
-                    cmd.Parameters.AddWithValue("@ReservatoriosVolumeTotalAtual", message.ReservatoriosVolumeTotalAtual);
-                    cmd.Parameters.AddWithValue("@AutonomiaBaseadaEm24horasDeConsumo", message.AutonomiaBaseadaEm24horasDeConsumo);
-                    cmd.Parameters.AddWithValue("@AutonomiaBaseadaEm1HoraDeConsumo", message.AutonomiaBaseadaEm1HoraDeConsumo);
-                    cmd.Parameters.AddWithValue("@BombaQuantidadeAcionamentoEm24Horas", message.BombaQuantidadeAcionamentoEm24Horas);
-                    cmd.Parameters.AddWithValue("@BombaQuantidadeAcionamentoEm30Dias", message.BombaQuantidadeAcionamentoEm30Dias);
-                    cmd.Parameters.AddWithValue("@BombaFuncionamentoTempo", message.BombaFuncionamentoTempo);
-                    cmd.Parameters.AddWithValue("@MedidorVazaoConsumo30dias", message.MedidorVazaoConsumo30dias);
-                    cmd.Parameters.AddWithValue("@MedidorVazaoConsumo1Dia", message.MedidorVazaoConsumo1Dia);
-                    cmd.Parameters.AddWithValue("@MedidorVazaoConsumo1Hora", message.MedidorVazaoConsumo1Hora);
-                    cmd.Parameters.AddWithValue("@MetaConsumoMensal", message.MetaConsumoMensal);
-                    cmd.Parameters.AddWithValue("@AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel", message.AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel);
-                    cmd.Parameters.AddWithValue("@AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel", message.AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel);
-                    cmd.Parameters.AddWithValue("@AlarmeReservatorioVazamento", message.AlarmeReservatorioVazamento);
+                    cmd.Parameters.AddWithValue("@VolumeReservatorioSuperior", message.VolumeReservatorioSuperior);
+                    cmd.Parameters.AddWithValue("@VolumeReservatorioInferior", message.VolumeReservatorioInferior);
+                    cmd.Parameters.AddWithValue("@VolumeTotalReservatorios", message.VolumeTotalReservatorios);
+                    cmd.Parameters.AddWithValue("@Autonomia24h", message.Autonomia24h);
+                    cmd.Parameters.AddWithValue("@AutonomiaInstantanea", message.AutonomiaInstantanea);
+                    cmd.Parameters.AddWithValue("@QtAcionamentBomba1", message.QtAcionamentBomba1);
+                    cmd.Parameters.AddWithValue("@QtAcionamentBomba2", message.QtAcionamentBomba2);
+                    cmd.Parameters.AddWithValue("@PercentualAcionamentBomba1", message.PercentualAcionamentBomba1);
+                    cmd.Parameters.AddWithValue("@PercentualAcionamentBomba2", message.PercentualAcionamentBomba2);
+                    cmd.Parameters.AddWithValue("@TempoAcionamentoBomba1", message.TempoAcionamentoBomba1);
+                    cmd.Parameters.AddWithValue("@TempoAcionamentoBomba2", message.TempoAcionamentoBomba2);
+                    cmd.Parameters.AddWithValue("@PercentualTempoAcionamentoBomba1", message.PercentualTempoAcionamentoBomba1);
+                    cmd.Parameters.AddWithValue("@PercentualTempoAcionamentoBomba2", message.PercentualTempoAcionamentoBomba2);
+                    cmd.Parameters.AddWithValue("@ConsumoHora", message.ConsumoHora);
+                    cmd.Parameters.AddWithValue("@ConsumoDia", message.ConsumoDia);
+                    cmd.Parameters.AddWithValue("@ConsumoMes", message.ConsumoMes);
 
                     Util.Log.Log($"[DatabaseHelper.AddMessage] cmd.CommandText = {cmd.CommandText} ");
 
@@ -310,50 +317,6 @@ namespace IotEdgeModuloCentral.Helpers
             }
         }
 
-        public void Update(int id, MessageBodyIoTCentral message)
-        {
-            try
-            {
-                using (var cmd = new SQLiteCommand())
-                {
-                    if ((id > 0) && (message != null))
-                    {
-                        cmd.CommandText = "UPDATE Message SET " +
-                                                  "HwId = @HwId, " +
-                                                  "PublicacaoCLP = @PublicacaoCLP, " +
-                                                  "PublicacaoModBus = @PublicacaoModBus, " +
-                                                  "PublicacaoCentral = @PublicacaoCentral, " +
-                                                  "NivelReservatorioSuperior = @NivelReservatorioSuperior, " +
-                                                  "VazaoSaida = @VazaoSaida, " +
-                                                  "NivelReservatorioInferior = @NivelReservatorioInferior, " +
-                                                  "VazaoEntrada = @VazaoEntrada, " +
-                                                  "StatusBomba1 = @StatusBomba1, " +
-                                                  "StatusBomba2 = @StatusBomba2 " +
-                                          "WHERE Id=@Id";
-                        cmd.Parameters.AddWithValue("@Id", id);
-                        cmd.Parameters.AddWithValue("@HwId", message.HwId);
-                        cmd.Parameters.AddWithValue("@PublicacaoCLP", message.PublicacaoCLP);
-                        cmd.Parameters.AddWithValue("@PublicacaoModBus", message.PublicacaoModBus);
-                        cmd.Parameters.AddWithValue("@PublicacaoCentral", message.PublicacaoCentral);
-                        cmd.Parameters.AddWithValue("@NivelReservatorioSuperior", message.NivelReservatorioSuperior);
-                        cmd.Parameters.AddWithValue("@VazaoSaida", message.VazaoSaida);
-                        cmd.Parameters.AddWithValue("@NivelReservatorioInferior", message.NivelReservatorioInferior);
-                        cmd.Parameters.AddWithValue("@VazaoEntrada", message.VazaoEntrada);
-                        cmd.Parameters.AddWithValue("@StatusBomba1", message.StatusBomba1);
-                        cmd.Parameters.AddWithValue("@StatusBomba2", message.StatusBomba2);
-
-                        Util.Log.Log($"[DatabaseHelper.Update] cmd.CommandText = {cmd.CommandText} ");
-
-                        ExecuteNonQuery(cmd);
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                Util.Log.Log($"[DatabaseHelper.Update] - Erro: {ex}");
-            }
-        }
-
         public void Delete(int id)
         {
             try
@@ -375,10 +338,10 @@ namespace IotEdgeModuloCentral.Helpers
 
         public class Indicator
         {
-            public static float ObterConsumoTotal24Horas()
+            public static int ObterConsumoTotal24Horas()
             {
                 //obter valor do banco
-                float valor = 0f;
+                int valor = 0;
                 DataTable dt = new DataTable();
                 try
                 {
@@ -389,7 +352,7 @@ namespace IotEdgeModuloCentral.Helpers
 
                         dt = ExecuteCommand(cmd);
                         if(dt!=null)
-                            valor = float.Parse(dt.Rows[0][0].ToString());
+                            valor = int.Parse(dt.Rows[0][0].ToString());
 
                         Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] cmd.CommandText = {cmd.CommandText} ");
                     }
@@ -400,9 +363,9 @@ namespace IotEdgeModuloCentral.Helpers
                 }
                 return valor;
             }
-            public static float ObterConsumoTotalUltimaHora()
+            public static int ObterConsumoTotalUltimaHora()
             {
-                float valor = 0f;
+                int valor = 0;
                 DataTable dt = new DataTable();
                 try
                 {
@@ -413,7 +376,7 @@ namespace IotEdgeModuloCentral.Helpers
 
                         dt = ExecuteCommand(cmd);
                         if (dt != null)
-                            valor = float.Parse(dt.Rows[0][0].ToString());
+                            valor = int.Parse(dt.Rows[0][0].ToString());
 
                         Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] cmd.CommandText = {cmd.CommandText} ");
                     }

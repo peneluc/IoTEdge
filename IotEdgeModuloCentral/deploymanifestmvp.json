@@ -1,0 +1,187 @@
+{
+    "modulesContent": {
+		"$edgeAgent": {
+            "properties.desired": {
+				"schemaVersion": "1.0",
+				"runtime": {
+                    "type": "docker",
+                    "settings": {
+                        "minDockerVersion": "v1.25",
+                        "registryCredentials": {
+                            "modbusToIoTHub": {
+                                "address": "adrianols/modbus",
+                                "password": "Senhadocker1!",
+                                "username": "adrianols"
+                            },
+                            "IotEdgeModuloCentral": {
+                                "address": "peneluc/iotedgemodulocentral",
+                                "password": "s1210docker",
+                                "username": "peneluc"
+                            }
+                        }
+                    }
+                },
+				"systemModules": {
+                    "edgeAgent": {
+                        "type": "docker",
+                        "settings": {
+                            "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
+                            "createOptions": "{}"
+                        },
+                        "env": {
+                            "ExperimentalFeatures__EnableGetLogs": {
+                                "value": "true"
+                            },
+                            "ExperimentalFeatures__Enabled": {
+                                "value": "true"
+                            }
+                        }
+                    },
+                    "edgeHub": {
+                        "type": "docker",
+                        "status": "running",
+                        "restartPolicy": "always",   
+                        "settings": {
+                            "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
+                            "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+                        },
+                        "env": {
+                            "OptimizeForPerformance": {
+                                "value": "false"
+                            }  
+                        }                            
+                    }
+                },
+                "modules": {
+                    "modbusToIoTHub": {
+                        "settings": {
+                            "image": "adrianols/modbus",
+                            "createOptions": "{\"HostConfig\":{\"User\":\"root\",\"Privileged\":true,\"Devices\":[{\"PathOnHost\":\"/dev/ttyACM0\",\"PathInContainer\":\"/dev/ttyACM0\",\"CgroupPermissions\":\"rwm\"}]}}"
+                        },
+                        "type": "docker",
+                        "version": "1.0",
+                        "status": "running",
+                        "restartPolicy": "always"
+                    },
+                    "IotEdgeModuloCentral": {
+                        "settings": {
+                            "image": "peneluc/iotedgemodulocentral:0.0.1-arm32v7",
+                            "createOptions": ""
+                        },
+                        "type": "docker",
+                        "version": "1.0",
+                        "status": "running",
+                        "restartPolicy": "always"
+                    }
+                }
+            }
+        },     
+        "$edgeHub": {
+            "properties.desired": {
+                "routes": {
+                    "modbusParaModuloCentral": "FROM /messages/modules/modbusToIoTHub/outputs/* INTO BrokeredEndpoint(\"/modules/IotEdgeModuloCentral/inputs/input1\")",
+                    "moduloCentralParaIotCentral": "FROM /messages/modules/IotEdgeModuloCentral/outputs/output1/* INTO $upstream",
+                    "moduloCentralParaModbus": "FROM /messages/modules/IotEdgeModuloCentral/outputs/output2/* INTO BrokeredEndpoint(\"/modules/modbusToIoTHub/inputs/input1\")"
+                },
+                "schemaVersion": "1.0",
+                "storeAndForwardConfiguration": {
+                    "timeToLiveSecs": 7200
+                }
+            }
+        },
+        "modbusToIoTHub": {
+            "properties.desired": {
+                "PublishInterval": "5000",
+                "SlaveConfigs": {
+                    "Slave01": {
+                        "SlaveConnection": "/dev/ttyACM0",
+                        "TcpPort": "0",
+                        "RetryCount": "10",
+                        "RetryInterval": "50",
+                        "HwId": "GTI-Device",
+                        "BaudRate": "9600",
+                        "DataBits": "8",
+                        "StopBits": "1",
+                        "Parity": "ODD",
+                        "FlowControl": "NONE",
+                      "Operations": {
+                        "Op01": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "10002",
+                          "Count": "1",
+                          "DisplayName": "HidrometroSaida"
+                        },
+                        "Op02": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "10003",
+                          "Count": "1",
+                          "DisplayName": "StatusBomba1"
+                        },
+                        "Op03": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "40015",
+                          "Count": "1",
+                          "DisplayName": "SondaDeNivelInferior"
+                        },
+                        "Op04": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "40016",
+                          "Count": "1",
+                          "DisplayName": "SondaDeNivelSuperior"
+                        },
+                        "Op05": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "10001",
+                          "Count": "1",
+                          "DisplayName": "HidrometroEntrada"
+                        },
+                        "Op06": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "10004",
+                          "Count": "1",
+                          "DisplayName": "StatusBomba2"
+                        },
+                        "Op07": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "10005",
+                          "Count": "1",
+                          "DisplayName": "StatusFalhaBomba1"
+                        },
+                        "Op08": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "10006",
+                          "Count": "1",
+                          "DisplayName": "StatusFalhaBomba1"
+                        },
+                        "Op09": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "00001",
+                          "Count": "1",
+                          "DisplayName": "AcionamentoBomba1"
+                        },
+                        "Op10": {
+                          "PollingInterval": "5000",
+                          "UnitId": "1",
+                          "StartAddress": "00002",
+                          "Count": "1",
+                          "DisplayName": "AcionamentoBomba2"
+                        }
+                      }
+                    }
+                }
+            }
+        },
+        "IotEdgeModuloCentral": {
+            "properties.desired": {}
+        }
+    }
+}

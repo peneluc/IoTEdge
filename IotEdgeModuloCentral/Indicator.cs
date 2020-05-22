@@ -4,7 +4,7 @@ using System;
 
 namespace IotEdgeModuloCentral
 {
-    public static class IndicatorHelper
+    public class Indicators
     {
         //CONSTANTES
 
@@ -34,32 +34,41 @@ namespace IotEdgeModuloCentral
 
         #region Variaveis
 
-        private static MessageBodyIoTCentral messageBodyIoTCentral;
+        MessageBodyIoTCentral message;
 
         #endregion
 
-        public static MessageDatabase CalcularIndicadores(MessageBodyIoTCentral message)
+        public MessageBodyIoTCentral GetMessage(MessageBodyIoTCentral msg)
         {
-            messageBodyIoTCentral = message;
+            this.message = msg;
 
-            var result = new MessageDatabase();
-            result.ReservatorioSuperiorNivelPercentualAtual = ReservatorioSuperiorNivelPercentualAtual();
-            result.ReservatorioInferiorNivelPercentualAtual = ReservatorioInferiorNivelPercentualAtual();
-            result.ReservatoriosVolumeTotalAtual = ReservatoriosVolumeTotalAtual();
-            result.AutonomiaBaseadaEm24horasDeConsumo = AutonomiaBaseadaEm24horasDeConsumo();
-            result.AutonomiaBaseadaEm1HoraDeConsumo = AutonomiaBaseadaEm1HoraDeConsumo();
-            result.BombaQuantidadeAcionamentoEm24Horas = BombaQuantidadeAcionamentoEm24Horas();
-            result.BombaQuantidadeAcionamentoEm30Dias = BombaQuantidadeAcionamentoEm30Dias();
-            result.BombaFuncionamentoTempo = BombaFuncionamentoTempo();
-            result.MedidorVazaoConsumo30dias = MedidorVazaoConsumo30dias();
-            result.MedidorVazaoConsumo1Dia = MedidorVazaoConsumo1Dia();
-            result.MedidorVazaoConsumo1Hora = MedidorVazaoConsumo1Hora();
-            result.MetaConsumoMensal = MetaConsumoMensal();
-            result.AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel = AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel();
-            result.AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel = AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel();
-            result.AlarmeReservatorioVazamento = AlarmeReservatorioVazamento();
+            message.VolumeReservatorioSuperior = ReservatorioSuperiorVolumeTotalAtual();
+            message.VolumeReservatorioInferior = ReservatorioInferiorVolumeTotalAtual();
+            message.VolumeTotalReservatorios = ReservatoriosVolumeTotalAtual();
+            message.Autonomia24h = AutonomiaBaseadaEm24horasDeConsumo();
 
-            return result;
+            message.AutonomiaInstantanea = AutonomiaBaseadaEm1HoraDeConsumo();
+            message.QtAcionamentBomba1 = Bomba1QuantidadeAcionamentoEm24Horas();
+            message.QtAcionamentBomba2 = Bomba2QuantidadeAcionamentoEm24Horas();
+            int totalAcionamentosBombas = (message.QtAcionamentBomba1 + message.QtAcionamentBomba2);
+            message.PercentualAcionamentBomba1 = (message.QtAcionamentBomba1 / totalAcionamentosBombas) * 100;
+            message.PercentualAcionamentBomba2 = (message.QtAcionamentBomba2 / totalAcionamentosBombas) * 100;
+
+            message.TempoAcionamentoBomba1 = Bomba1TempoAcionamentoEm30Dias();
+            message.TempoAcionamentoBomba2 = Bomba2TempoAcionamentoEm30Dias();
+            int tempoTotalAcionamentosBombas = (message.TempoAcionamentoBomba1 + message.TempoAcionamentoBomba2);
+            message.PercentualTempoAcionamentoBomba1 = (message.TempoAcionamentoBomba1 / tempoTotalAcionamentosBombas) * 100;
+            message.PercentualTempoAcionamentoBomba2 = (message.TempoAcionamentoBomba2 / tempoTotalAcionamentosBombas) * 100;
+
+            message.ConsumoHora = MedidorVazaoConsumo1Hora();
+            message.ConsumoDia = MedidorVazaoConsumo1Dia();
+            message.ConsumoMes = MedidorVazaoConsumo30Dias();
+
+            //result.MetaConsumo = ;
+            //result.PercentualMetaConsumo = ;
+            //result.TipoConsumidor = ;
+
+            return message;
         }
 
 
@@ -76,13 +85,13 @@ namespace IotEdgeModuloCentral
         //20% (vazio) -> Constante até solucionar
         //Para alarme constante
         //Criar subalarmes a partir de 20%
-        public static int ReservatorioSuperiorNivelPercentualAtual()
+        private int ReservatorioSuperiorNivelPercentualAtual()
         {
             int resultado = 0;
 
             try
             {
-                resultado = (messageBodyIoTCentral.NivelReservatorioSuperior * 100) / CONST_NIVEL_SUPERIOR_VALOR_MAXIMO;
+                resultado = (message.SondaDeNivelSuperior * 100) / CONST_NIVEL_SUPERIOR_VALOR_MAXIMO;
             }
             catch (Exception ex)
             {
@@ -93,13 +102,13 @@ namespace IotEdgeModuloCentral
 
             return resultado;
         }
-        public static int ReservatorioInferiorNivelPercentualAtual()
+        private int ReservatorioInferiorNivelPercentualAtual()
         {
             int resultado = 0;
 
             try
             {
-                resultado = (messageBodyIoTCentral.NivelReservatorioInferior * 100) / CONST_NIVEL_INFERIOR_VALOR_MAXIMO;
+                resultado = (message.SondaDeNivelInferior * 100) / CONST_NIVEL_INFERIOR_VALOR_MAXIMO;
             }
             catch (Exception ex)
             {
@@ -120,7 +129,7 @@ namespace IotEdgeModuloCentral
         //VOL_RES1 = (NÍVEL RES1% * VOLUME TOTAL 1 M³) / 100%
         //VOL_RES2 = (NÍVEL RES2 % * VOLUME TOTAL 2 M³) / 100%
         //VOL_TOTAL = VOL_RES1  + VOL_RES2
-        public static int ReservatorioSuperiorVolumeTotalAtual()
+        private int ReservatorioSuperiorVolumeTotalAtual()
         {
             int resultado = 0;
 
@@ -138,7 +147,7 @@ namespace IotEdgeModuloCentral
 
             return resultado;
         }
-        public static int ReservatorioInferiorVolumeTotalAtual()
+        private int ReservatorioInferiorVolumeTotalAtual()
         {
             int resultado = 0;
 
@@ -156,7 +165,7 @@ namespace IotEdgeModuloCentral
 
             return resultado;
         }
-        public static int ReservatoriosVolumeTotalAtual()
+        private int ReservatoriosVolumeTotalAtual()
         {
             int resultado = 0;
 
@@ -193,9 +202,9 @@ namespace IotEdgeModuloCentral
         //X>Y
         //quantidadeDeLitrosAtual = (nívelReservatorioSuperior * volumeMaximoReservatorio) / 100->EQUAÇÃO NO ITEM 2.
         //autonomiaEmHoras = quantidadeDeLitrosAtual/vazao24horas
-        public static float AutonomiaBaseadaEm24horasDeConsumo()
+        private int AutonomiaBaseadaEm24horasDeConsumo()
         {
-            float resultado = 0;
+            int resultado = 0;
 
             try
             {
@@ -230,9 +239,9 @@ namespace IotEdgeModuloCentral
         //X>Y
         //quantidadeDeLitrosAtual = (nívelReservatorioSuperior * volumeMaximoReservatorio) / 100
         //autonomiaEmHoras = quantidadeDeLitrosAtual/vazão1Hora
-        public static float AutonomiaBaseadaEm1HoraDeConsumo()
+        private int AutonomiaBaseadaEm1HoraDeConsumo()
         {
-            float resultado = 0;
+            int resultado = 0;
 
             try
             {
@@ -269,7 +278,7 @@ namespace IotEdgeModuloCentral
         //        Alocar o valor da variável totalizadora AC_BOMBA1 em uma memória no banco de dados a cada 30 dias(720 h);
 
         //        Sem preset de alarmes, apenas as informações de quantidade.
-        public static int BombaQuantidadeAcionamentoEm24Horas()
+        private int Bomba1QuantidadeAcionamentoEm24Horas()
         {
             int resultado = 0;
 
@@ -287,7 +296,24 @@ namespace IotEdgeModuloCentral
             return resultado;
         }
 
-        public static int BombaQuantidadeAcionamentoEm30Dias()
+        private int Bomba1QuantidadeAcionamentoEm30Dias()
+        {
+            int resultado = 0;
+
+            try
+            {
+                resultado = DatabaseHelper.Indicator.ObterQuantidadeAcionamentoEm30Dias();
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Erro ao calcular o Indicador [BombaQuantidadeAcionamento] - exc: {ex}";
+                Util.Log.Error(msg);
+                throw new Exception(msg, ex);
+            }
+
+            return resultado;
+        }
+        private int Bomba1TempoAcionamentoEm30Dias()
         {
             int resultado = 0;
 
@@ -333,7 +359,124 @@ namespace IotEdgeModuloCentral
         //Obs : para realizar o cálculo da fórmula descrita acima, necessita-se multiplicar a hora por 60 para que o número esteja todo transformado em minuto, ou seja, o resultado do tempo será dado em minuto.
 
         //obs : para realizar a lógica de contagem de tempo é melhor utilizar um cronômetro.
-        public static int BombaFuncionamentoTempo()
+        private int Bomba1FuncionamentoTempo()
+        {
+            int resultado = 0;
+
+            try
+            {
+                resultado = DatabaseHelper.Indicator.ObterBombaFuncionamentoTempo();
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Erro ao calcular o Indicador [BombaFuncionamentoTempo] - exc: {ex}";
+                Util.Log.Error(msg);
+                throw new Exception(msg, ex);
+            }
+
+            return resultado;
+        }
+
+
+        //GERENCIAMENTO DE BOMBAS
+
+        //QUANTIDADE DE ACIONAMENTO (QT DE X QUE BOTÃO LIGAR/DESLIGAR É ATIVADO)
+
+        //Fórmula Geral
+        //Toda vez que o STATUS for verdadeiro ou seja for acionado executar a fórmula abaixo: 
+
+        //AC_BOMBA1 = 0
+        //AC_BOMBA1 = AC_BOMBA1 + 1
+
+        //por dia;
+        //        Alocar o valor da variável totalizadora AC_BOMBA1 em uma memória no banco de dados a cada 24 h; 
+
+        //acumulado mês;
+        //        Alocar o valor da variável totalizadora AC_BOMBA1 em uma memória no banco de dados a cada 30 dias(720 h);
+
+        //        Sem preset de alarmes, apenas as informações de quantidade.
+        private int Bomba2QuantidadeAcionamentoEm24Horas()
+        {
+            int resultado = 0;
+
+            try
+            {
+                resultado = DatabaseHelper.Indicator.ObterQuantidadeAcionamentoEm24Horas();
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Erro ao calcular o Indicador [BombaQuantidadeAcionamento] - exc: {ex}";
+                Util.Log.Error(msg);
+                throw new Exception(msg, ex);
+            }
+
+            return resultado;
+        }
+
+        private int Bomba2QuantidadeAcionamentoEm30Dias()
+        {
+            int resultado = 0;
+
+            try
+            {
+                resultado = DatabaseHelper.Indicator.ObterQuantidadeAcionamentoEm30Dias();
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Erro ao calcular o Indicador [BombaQuantidadeAcionamento] - exc: {ex}";
+                Util.Log.Error(msg);
+                throw new Exception(msg, ex);
+            }
+
+            return resultado;
+        }
+        private int Bomba2TempoAcionamentoEm30Dias()
+        {
+            int resultado = 0;
+
+            try
+            {
+                resultado = DatabaseHelper.Indicator.ObterQuantidadeAcionamentoEm30Dias();
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Erro ao calcular o Indicador [BombaQuantidadeAcionamento] - exc: {ex}";
+                Util.Log.Error(msg);
+                throw new Exception(msg, ex);
+            }
+
+            return resultado;
+        }
+
+
+        //TEMPO DE FUNCIONAMENTO DA BOMBA(ACUMULA TEMPO ENTRE LIGAR E DESLIGAR BOMBA)
+
+        //Fórmula Geral
+        //Toda vez que o STATUS for verdadeiro ou seja for acionado executar a fórmula abaixo:
+
+        //X = Tempo_Atual_Ligado
+
+        //Exemplo: 
+        //X = (hh:mm);
+        //X = hh*60;
+        //Res1= hh*60 + mm ; 
+
+        //Quando a variável STATUS for falsa, ou seja for desativado
+
+        //Y = Tempo_Atual_Desligado
+
+        //Exemplo: 
+        //Y= (hh:mm);
+        //Y= hh*60;
+        //Res2= hh*60 + mm ; 
+
+        //Temp_FUN = Res2 - Res1(Tempo para um acionamento)
+
+
+        //Obs : para realizar o cálculo da fórmula descrita acima, necessita-se multiplicar a hora por 60 para que o número esteja todo transformado em minuto, ou seja, o resultado do tempo será dado em minuto.
+
+        //obs : para realizar a lógica de contagem de tempo é melhor utilizar um cronômetro.
+        private int Bomba2FuncionamentoTempo()
         {
             int resultado = 0;
 
@@ -364,7 +507,7 @@ namespace IotEdgeModuloCentral
         //30 dias
         //vazao1mes = valorHidrometroTempoX - valorHidrometroTempoY
         //X>Y
-        public static int MedidorVazaoConsumo30dias()
+        private int MedidorVazaoConsumo30Dias()
         {
             int resultado = 0;
 
@@ -382,7 +525,7 @@ namespace IotEdgeModuloCentral
             return resultado;
         }
 
-        public static int MedidorVazaoConsumo1Dia()
+        private int MedidorVazaoConsumo1Dia()
         {
             int resultado = 0;
 
@@ -400,7 +543,7 @@ namespace IotEdgeModuloCentral
             return resultado;
         }
 
-        public static int MedidorVazaoConsumo1Hora()
+        private int MedidorVazaoConsumo1Hora()
         {
             int resultado = 0;
 
@@ -432,7 +575,7 @@ namespace IotEdgeModuloCentral
         //A partir dessa informação e da medição do consumo acumulado em 30 dias, informar ao cliente se ele está próximo do valor de meta, já ultrapassou o valor da meta, se está longe do valor.Sugestão foi usar o velocímetro com as cores verde, amarelo e vermelho para fazer essa indicação.
 
         //Fórmula sugerida para cálculo de média/meta mensal
-        public static int MetaConsumoMensal()
+        private int MetaConsumoMensal()
         {
             int resultado = 0;
 
@@ -459,7 +602,7 @@ namespace IotEdgeModuloCentral
         //ALARME PARA VAZÃO DOS RESERVATÓRIOS 
         //>= 10m3/h
         //<=1m3/h
-        public static bool AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel()
+        private bool AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel()
         {
             bool resultado = false;
 
@@ -481,7 +624,7 @@ namespace IotEdgeModuloCentral
 
             return resultado;
         }
-        public static bool AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel()
+        private bool AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel()
         {
             bool resultado = false;
 
@@ -506,7 +649,7 @@ namespace IotEdgeModuloCentral
 
         //ALARME DE VAZAMENTO
         //Como identificar um vazamento? Quais parâmetros devem ser tra
-        public static int AlarmeReservatorioVazamento()
+        private int AlarmeReservatorioVazamento()
         {
             int resultado = 0;
 

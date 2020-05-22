@@ -1,0 +1,66 @@
+{
+  "PublishTimestamp": "2020-01-01 00:00:00",
+  "Content": [
+    {
+      "HwId": "GTI-Device",
+      "Data": [
+        {
+          "CorrelationId": "DefaultCorrelationId",
+          "SourceTimestamp": "2020-01-01 00:00:00",
+          "Values": [
+            {
+              "DisplayName": "AcionamentoBomba1",
+              "Address": "00001",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "AcionamentoBomba2",
+              "Address": "00002",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "HidrometroEntrada",
+              "Address": "10003",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "HidrometroSaida",
+              "Address": "10004",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "StatusBomba1",
+              "Address": "10005",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "StatusBomba2",
+              "Address": "10006",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "StatusFalhaBomba1",
+              "Address": "10007",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "StatusFalhaBomba1",
+              "Address": "10008",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "SondaDeNivelInferior",
+              "Address": "40015",
+              "Value": "1"
+            },
+            {
+              "DisplayName": "SondaDeNivelSuperior",
+              "Address": "40016",
+              "Value": "1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -187,54 +187,54 @@ namespace IotEdgeModuloCentral.Helpers
                 #region modelo
                 /*
                  * ENTRADA
-                    {
-                      "PublishTimestamp": "2020-04-19 03:19:08",
-                      "Content": [
-                        {
-                          "HwId": "GTI-Device",
-                          "Data": [
-                            {
-                              "CorrelationId": "DefaultCorrelationId",
-                              "SourceTimestamp": "2020-04-19 03:19:04",
-                              "Values": [
-                                {
-                                  "DisplayName": "StatusBomba",
-                                  "Address": "00009",
-                                  "Value": "0"
-                                }
-                              ]
-                            },
-                            {
-                              "CorrelationId": "DefaultCorrelationId",
-                              "SourceTimestamp": "2020-04-19 03:19:05",
-                              "Values": [
-                                {
-                                  "DisplayName": "MedidorDeNivel",
-                                  "Address": "10002",
-                                  "Value": "1"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
+                //    {
+                //      "PublishTimestamp": "2020-04-19 03:19:08",
+                //      "Content": [
+                //        {
+                //          "HwId": "GTI-Device",
+                //          "Data": [
+                //            {
+                //              "CorrelationId": "DefaultCorrelationId",
+                //              "SourceTimestamp": "2020-04-19 03:19:04",
+                //              "Values": [
+                //                {
+                //                  "DisplayName": "StatusBomba",
+                //                  "Address": "00009",
+                //                  "Value": "0"
+                //                }
+                //              ]
+                //            },
+                //            {
+                //              "CorrelationId": "DefaultCorrelationId",
+                //              "SourceTimestamp": "2020-04-19 03:19:05",
+                //              "Values": [
+                //                {
+                //                  "DisplayName": "MedidorDeNivel",
+                //                  "Address": "10002",
+                //                  "Value": "1"
+                //                }
+                //              ]
+                //            }
+                //          ]
+                //        }
+                //      ]
+                //    }
 
-                SAIDA
+                //SAIDA
 
-                    {
-                        "HwId": "1",
-                        "PublicacaoCLP": "2020-04-06 00:52:03",
-                        "PublicacaoModBus": "2020-04-06 00:52:03",
-                        "PublicacaoCentral": "2020-04-06 00:52:03",
-                        "NivelReservatorioSuperior": 850,
-                        "VazaoSaida": 250,
-                        "NivelReservatorioInferior": 850,
-                        "VazaoEntrada": 250,
-                        "StatusBomba1": false,
-                        "StatusBomba2”: false,
-                        "ValvulaCorte": true
-                    }
+                //    {
+                //        "HwId": "1",
+                //        "PublicacaoCLP": "2020-04-06 00:52:03",
+                //        "PublicacaoModBus": "2020-04-06 00:52:03",
+                //        "PublicacaoCentral": "2020-04-06 00:52:03",
+                //        "NivelReservatorioSuperior": 850,
+                //        "VazaoSaida": 250,
+                //        "NivelReservatorioInferior": 850,
+                //        "VazaoEntrada": 250,
+                //        "StatusBomba1": false,
+                //        "StatusBomba2”: false,
+                //        "ValvulaCorte": true
+                //    }
                 */
                 #endregion
 
@@ -248,8 +248,6 @@ namespace IotEdgeModuloCentral.Helpers
                         //HwId
                         messageBodyIoTCentral.HwId = messageBodyModbus.Content[0].HwId;
 
-                        //throw new Exception("mensagem alterada, confirmar novo padrão");
-
                         //Trata corpo da mensagem
                         if (messageBodyModbus.Content[0].Data != null && messageBodyModbus.Content[0].Data.Count > 0)
                         {
@@ -259,37 +257,45 @@ namespace IotEdgeModuloCentral.Helpers
                                 {
                                     switch (value.DisplayName)
                                     {
-                                        case "NivelSuperior":
-                                            messageBodyIoTCentral.NivelReservatorioSuperior = ObterValorInteiroRealOuSimulado(null);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - NivelSuperior");
+                                        case "AcionamentoBomba1":
+                                            messageBodyIoTCentral.AcionamentoBomba1 = ObterValorInteiroRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - AcionamentoBomba1");
                                             break;
-                                        case "NivelInferior":
-                                            messageBodyIoTCentral.NivelReservatorioInferior = ObterValorInteiroRealOuSimulado(null);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - NivelInferior");
+                                        case "AcionamentoBomba2":
+                                            messageBodyIoTCentral.AcionamentoBomba2 = ObterValorInteiroRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - AcionamentoBomba2");
                                             break;
-                                        case "VazaoEntrada":
-                                            messageBodyIoTCentral.VazaoEntrada = ObterValorInteiroRealOuSimulado(null);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - VazaoEntrada");
+                                        case "HidrometroEntrada":
+                                            messageBodyIoTCentral.HidrometroEntrada = ObterValorInteiroRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - HidrometroEntrada");
                                             break;
-                                        case "VazaoSaida":
-                                            messageBodyIoTCentral.VazaoSaida = ObterValorInteiroRealOuSimulado(null);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - VazaoSaida");
+                                        case "HidrometroSaida":
+                                            messageBodyIoTCentral.HidrometroSaida = ObterValorInteiroRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - HidrometroSaida");
                                             break;
                                         case "StatusBomba1":
-                                            messageBodyIoTCentral.StatusBomba1 = ObterValorBooleanoRealOuSimulado(null);
+                                            messageBodyIoTCentral.StatusBomba1 = ObterValorBooleanoRealOuSimulado(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusBomba1");
                                             break;
                                         case "StatusBomba2":
-                                            messageBodyIoTCentral.StatusBomba2 = ObterValorBooleanoRealOuSimulado(null);
+                                            messageBodyIoTCentral.StatusBomba2 = ObterValorBooleanoRealOuSimulado(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusBomba2");
                                             break;
-                                        case "FalhaBomba1":
-                                            messageBodyIoTCentral.FalhaBomba1 = ObterValorBooleanoRealOuSimulado(null);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - FalhaBomba1");
+                                        case "StatusFalhaBomba1":
+                                            messageBodyIoTCentral.StatusFalhaBomba1 = ObterValorBooleanoRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusFalhaBomba1");
                                             break;
-                                        case "FalhaBomba2":
-                                            messageBodyIoTCentral.FalhaBomba2 = ObterValorBooleanoRealOuSimulado(null);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - FalhaBomba2");
+                                        case "StatusFalhaBomba2":
+                                            messageBodyIoTCentral.StatusFalhaBomba2 = ObterValorBooleanoRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusFalhaBomba2");
+                                            break;
+                                        case "SondaDeNivelInferior":
+                                            messageBodyIoTCentral.SondaDeNivelInferior = ObterValorInteiroRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - SondaDeNivelInferior");
+                                            break;
+                                        case "SondaDeNivelSuperior":
+                                            messageBodyIoTCentral.SondaDeNivelSuperior = ObterValorInteiroRealOuSimulado(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - SondaDeNivelSuperior");
                                             break;
                                         default:
                                             Util.Log.Info($"[ObterMessageBodyIoTCentral] Nome de dispositivo nao reconhecido: {value}");
