@@ -11,6 +11,7 @@ namespace IotEdgeModuloCentral.Helpers
 {
     public class MessageHelper
     {
+        public bool DEBUG = false;
 
         #region Variaveis
 
@@ -89,41 +90,47 @@ namespace IotEdgeModuloCentral.Helpers
 
         #region Suporte
 
-        public int ObterValorInteiroRealOuSimulado(Values value)
+        public int ObterValorInteiro(Values value)
         {
             Random rnd = new Random();
             int retorno = 0;
 
-            if ((value == null) ||
-                (string.IsNullOrEmpty(value.Value)))
+            if(DEBUG)
             {
                 retorno = rnd.Next(1, 100);
                 Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor simulado: {retorno}");
             }
             else
             {
-                retorno = int.Parse(value.Value);
-                Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor real: {retorno}");
-            }
+                if ((value != null) ||
+                    (!string.IsNullOrEmpty(value.Value)))
+                {
+                    retorno = int.Parse(value.Value);
+                    Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor real: {retorno}");
+                }
+            }           
 
             return retorno;
         }
 
-        public bool ObterValorBooleanoRealOuSimulado(Values value)
+        public bool ObterValorBooleano(Values value)
         {
             Random rnd = new Random();
             bool retorno = false;
 
-            if ((value == null) ||
-                (string.IsNullOrEmpty(value.Value)))
+            if (DEBUG)
             {
                 retorno = rnd.Next(1, 100) < 50;
                 Util.Log.Error($"[ObterValorBooleanoRealOuSimulado] - Valor simulado: {retorno}");
             }
             else
             {
-                retorno = bool.Parse(value.Value);
-                Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor real: {retorno}");
+                if ((value != null) ||
+                    (!string.IsNullOrEmpty(value.Value)))
+                {
+                    retorno = bool.Parse(value.Value);
+                    Util.Log.Error($"[ObterValorInteiroRealOuSimulado] - Valor real: {retorno}");
+                }
             }
 
             return retorno;
@@ -258,43 +265,43 @@ namespace IotEdgeModuloCentral.Helpers
                                     switch (value.DisplayName)
                                     {
                                         case "AcionamentoBomba1":
-                                            messageBodyIoTCentral.AcionamentoBomba1 = ObterValorInteiroRealOuSimulado(value);
+                                            messageBodyIoTCentral.AcionamentoBomba1 = ObterValorBooleano(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - AcionamentoBomba1");
                                             break;
                                         case "AcionamentoBomba2":
-                                            messageBodyIoTCentral.AcionamentoBomba2 = ObterValorInteiroRealOuSimulado(value);
+                                            messageBodyIoTCentral.AcionamentoBomba2 = ObterValorBooleano(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - AcionamentoBomba2");
                                             break;
-                                        case "HidrometroEntrada":
-                                            messageBodyIoTCentral.HidrometroEntrada = ObterValorInteiroRealOuSimulado(value);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - HidrometroEntrada");
+                                        case "LeituraMedidorInferior":
+                                            messageBodyIoTCentral.LeituraMedidorInferior = ObterValorInteiro(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - LeituraMedidorInferior");
                                             break;
-                                        case "HidrometroSaida":
-                                            messageBodyIoTCentral.HidrometroSaida = ObterValorInteiroRealOuSimulado(value);
-                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - HidrometroSaida");
+                                        case "LeituraMedidorSuperior":
+                                            messageBodyIoTCentral.LeituraMedidorSuperior = ObterValorInteiro(value);
+                                            Util.Log.Info("[ObterMessageBodyIoTCentral] - LeituraMedidorSuperior");
                                             break;
                                         case "StatusBomba1":
-                                            messageBodyIoTCentral.StatusBomba1 = ObterValorBooleanoRealOuSimulado(value);
+                                            messageBodyIoTCentral.StatusBomba1 = ObterValorBooleano(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusBomba1");
                                             break;
                                         case "StatusBomba2":
-                                            messageBodyIoTCentral.StatusBomba2 = ObterValorBooleanoRealOuSimulado(value);
+                                            messageBodyIoTCentral.StatusBomba2 = ObterValorBooleano(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusBomba2");
                                             break;
                                         case "StatusFalhaBomba1":
-                                            messageBodyIoTCentral.StatusFalhaBomba1 = ObterValorBooleanoRealOuSimulado(value);
+                                            messageBodyIoTCentral.StatusFalhaBomba1 = ObterValorBooleano(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusFalhaBomba1");
                                             break;
                                         case "StatusFalhaBomba2":
-                                            messageBodyIoTCentral.StatusFalhaBomba2 = ObterValorBooleanoRealOuSimulado(value);
+                                            messageBodyIoTCentral.StatusFalhaBomba2 = ObterValorBooleano(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - StatusFalhaBomba2");
                                             break;
                                         case "SondaDeNivelInferior":
-                                            messageBodyIoTCentral.SondaDeNivelInferior = ObterValorInteiroRealOuSimulado(value);
+                                            messageBodyIoTCentral.SondaDeNivelInferior = ObterValorInteiro(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - SondaDeNivelInferior");
                                             break;
                                         case "SondaDeNivelSuperior":
-                                            messageBodyIoTCentral.SondaDeNivelSuperior = ObterValorInteiroRealOuSimulado(value);
+                                            messageBodyIoTCentral.SondaDeNivelSuperior = ObterValorInteiro(value);
                                             Util.Log.Info("[ObterMessageBodyIoTCentral] - SondaDeNivelSuperior");
                                             break;
                                         default:

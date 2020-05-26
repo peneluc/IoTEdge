@@ -51,27 +51,32 @@ namespace IotEdgeModuloCentral.Helpers
                                                 "PublicacaoCLP Varchar(50), " +
                                                 "PublicacaoModBus Varchar(50), " +
                                                 "PublicacaoCentral Varchar(50), " +
-                                                "NivelReservatorioSuperior Varchar(50), " +
-                                                "VazaoSaida Varchar(50), " +
-                                                "NivelReservatorioInferior Varchar(50), " +
-                                                "VazaoEntrada Varchar(50), " +
+                                                "AcionamentoBomba1 Varchar(50), " +
+                                                "AcionamentoBomba2 Varchar(50), " +
+                                                "LeituraMedidorInferior Varchar(50), " +
+                                                "LeituraMedidorSuperior Varchar(50), " +
                                                 "StatusBomba1 Varchar(50), " +
-                                                "StatusBomba2 Varchar(50)," +
-                                                "ReservatorioSuperiorNivelPercentualAtual Varchar(50), " +
-                                                "ReservatorioInferiorNivelPercentualAtual Varchar(50), " +
-                                                "ReservatoriosVolumeTotalAtual Varchar(50), " +
-                                                "AutonomiaBaseadaEm24horasDeConsumo Varchar(50), " +
-                                                "AutonomiaBaseadaEm1HoraDeConsumo Varchar(50), " +
-                                                "BombaQuantidadeAcionamentoEm24Horas Varchar(50), " +
-                                                "BombaQuantidadeAcionamentoEm30Dias Varchar(50), " +
-                                                "BombaFuncionamentoTempo Varchar(50), " +
-                                                "MedidorVazaoConsumo30dias Varchar(50), " +
-                                                "MedidorVazaoConsumo1Dia Varchar(50), " +
-                                                "MedidorVazaoConsumo1Hora Varchar(50), " +
-                                                "MetaConsumoMensal Varchar(50), " +
-                                                "AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel Varchar(50), " +
-                                                "AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel Varchar(50), " +
-                                                "AlarmeReservatorioVazamento Varchar(50))";
+                                                "StatusBomba2 Varchar(50), " +
+                                                "StatusFalhaBomba1 Varchar(50), " +
+                                                "StatusFalhaBomba2 Varchar(50), " +
+                                                "SondaDeNivelInferior Varchar(50), " +
+                                                "SondaDeNivelSuperior Varchar(50), " +
+                                                "VolumeReservatorioSuperior Varchar(50), " +
+                                                "VolumeReservatorioInferior Varchar(50), " +
+                                                "VolumeTotalReservatorios Varchar(50), " +
+                                                "Autonomia24h Varchar(50), " +
+                                                "AutonomiaInstantanea Varchar(50), " +
+                                                "QtAcionamentBomba1 Varchar(50), " +
+                                                "QtAcionamentBomba2 Varchar(50), " +
+                                                "PercentualAcionamentBomba1 Varchar(50), " +
+                                                "PercentualAcionamentBomba2 Varchar(50), " +
+                                                "TempoAcionamentoBomba1 Varchar(50), " +
+                                                "TempoAcionamentoBomba2 Varchar(50), " +
+                                                "PercentualTempoAcionamentoBomba1 Varchar(50), " +
+                                                "PercentualTempoAcionamentoBomba2 Varchar(50), " +
+                                                "ConsumoHora Varchar(50), " +
+                                                "ConsumoDia Varchar(50), " +
+                                                "ConsumoMes Varchar(50)) ";
 
                     Util.Log.Log($"[DatabaseHelper.OpenOrCreateDatabase] cmd.CommandText = {cmd.CommandText} ");
                     ExecuteNonQuery(cmd);
@@ -97,7 +102,8 @@ namespace IotEdgeModuloCentral.Helpers
             }
             catch (Exception ex)
             {
-                Util.Log.Log($"[DatabaseHelper.OpenCreateDatabase] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.ExecuteNonQuery] - Erro: {ex}");
+                Util.Log.Log($"[DatabaseHelper.ExecuteNonQuery] - Erro cmd: {cmd.CommandText}");
             }
             return 0;
         }
@@ -191,7 +197,6 @@ namespace IotEdgeModuloCentral.Helpers
 
                 OpenOrCreateDatabase();
 
-
                 //calculando Indicadores secundarios
                 var message = new Indicators().GetMessage(msg);
 
@@ -202,54 +207,63 @@ namespace IotEdgeModuloCentral.Helpers
                                               "PublicacaoCLP, " +
                                               "PublicacaoModBus, " +
                                               "PublicacaoCentral, " +
-                                              "NivelReservatorioSuperior, " +
-                                              "VazaoSaida, " +
-                                              "NivelReservatorioInferior, " +
-                                              "VazaoEntrada, " +
+                                              "AcionamentoBomba1, " +
+                                              "AcionamentoBomba2, " +
+                                              "LeituraMedidorInferior, " +
+                                              "LeituraMedidorSuperior, " +
                                               "StatusBomba1, " +
                                               "StatusBomba2, " +
-
-                                              "ReservatorioSuperiorNivelPercentualAtual, " +
-                                              "ReservatorioInferiorNivelPercentualAtual, " +
-                                              "ReservatoriosVolumeTotalAtual, " +
-                                              "AutonomiaBaseadaEm24horasDeConsumo, " +
-                                              "AutonomiaBaseadaEm1HoraDeConsumo, " +
-                                              "BombaQuantidadeAcionamentoEm24Horas, " +
-                                              "BombaQuantidadeAcionamentoEm30Dias, " +
-                                              "BombaFuncionamentoTempo, " +
-                                              "MedidorVazaoConsumo30dias, " +
-                                              "MedidorVazaoConsumo1Dia, " +
-                                              "MedidorVazaoConsumo1Hora, " +
-                                              "MetaConsumoMensal, " +
-                                              "AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel, " +
-                                              "AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel, " +
-                                              "AlarmeReservatorioVazamento) " +
-                                      "VALUES (@HwId, " +
+                                              "StatusFalhaBomba1, " +
+                                              "StatusFalhaBomba2, " +
+                                              "SondaDeNivelInferior, " +
+                                              "SondaDeNivelSuperior, " +
+                                              "VolumeReservatorioSuperior, " +
+                                              "VolumeReservatorioInferior, " +
+                                              "VolumeTotalReservatorios, " +
+                                              "Autonomia24h, " +
+                                              "AutonomiaInstantanea, " +
+                                              "QtAcionamentBomba1, " +
+                                              "QtAcionamentBomba2, " +
+                                              "PercentualAcionamentBomba1, " +
+                                              "PercentualAcionamentBomba2, " +
+                                              "TempoAcionamentoBomba1, " +
+                                              "TempoAcionamentoBomba2, " +
+                                              "PercentualTempoAcionamentoBomba1, " +
+                                              "PercentualTempoAcionamentoBomba2, " +
+                                              "ConsumoHora, " +
+                                              "ConsumoDia, " +
+                                              "ConsumoMes) " +
+                                              "VALUES (" +
+                                              "@HwId, " +
                                               "@PublicacaoCLP, " +
                                               "@PublicacaoModBus, " +
                                               "@PublicacaoCentral, " +
-                                              "@NivelReservatorioSuperior, " +
-                                              "@VazaoSaida, " +
-                                              "@NivelReservatorioInferior, " +
-                                              "@VazaoEntrada, " +
+                                              "@AcionamentoBomba1, " +
+                                              "@AcionamentoBomba2, " +
+                                              "@LeituraMedidorInferior, " +
+                                              "@LeituraMedidorSuperior, " +
                                               "@StatusBomba1, " +
                                               "@StatusBomba2, " +
-
-                                              "@ReservatorioSuperiorNivelPercentualAtual," +
-                                              "@ReservatorioInferiorNivelPercentualAtual," +
-                                              "@ReservatoriosVolumeTotalAtual," +
-                                              "@AutonomiaBaseadaEm24horasDeConsumo," +
-                                              "@AutonomiaBaseadaEm1HoraDeConsumo," +
-                                              "@BombaQuantidadeAcionamentoEm24Horas," +
-                                              "@BombaQuantidadeAcionamentoEm30Dias," +
-                                              "@BombaFuncionamentoTempo," +
-                                              "@MedidorVazaoConsumo30dias," +
-                                              "@MedidorVazaoConsumo1Dia," +
-                                              "@MedidorVazaoConsumo1Hora," +
-                                              "@MetaConsumoMensal," +
-                                              "@AlarmeReservatorioSuperiorAtingiuNivelMaximoAceitavel," +
-                                              "@AlarmeReservatorioInferiorAtingiuNivelMinimoAceitavel," +
-                                              "@AlarmeReservatorioVazamento)";
+                                              "@StatusFalhaBomba1, " +
+                                              "@StatusFalhaBomba2, " +
+                                              "@SondaDeNivelInferior, " +
+                                              "@SondaDeNivelSuperior, " +
+                                              "@VolumeReservatorioSuperior, " +
+                                              "@VolumeReservatorioInferior, " +
+                                              "@VolumeTotalReservatorios, " +
+                                              "@Autonomia24h, " +
+                                              "@AutonomiaInstantanea, " +
+                                              "@QtAcionamentBomba1, " +
+                                              "@QtAcionamentBomba2, " +
+                                              "@PercentualAcionamentBomba1, " +
+                                              "@PercentualAcionamentBomba2, " +
+                                              "@TempoAcionamentoBomba1, " +
+                                              "@TempoAcionamentoBomba2, " +
+                                              "@PercentualTempoAcionamentoBomba1, " +
+                                              "@PercentualTempoAcionamentoBomba2, " +
+                                              "@ConsumoHora, " +
+                                              "@ConsumoDia, " +
+                                              "@ConsumoMes)";
 
                     cmd.Parameters.AddWithValue("@HwId", msg.HwId);
                     cmd.Parameters.AddWithValue("@PublicacaoCLP", msg.PublicacaoCLP);
@@ -258,8 +272,8 @@ namespace IotEdgeModuloCentral.Helpers
 
                     cmd.Parameters.AddWithValue("@AcionamentoBomba1", msg.AcionamentoBomba1);
                     cmd.Parameters.AddWithValue("@AcionamentoBomba2", msg.AcionamentoBomba2);
-                    cmd.Parameters.AddWithValue("@HidrometroEntrada", msg.HidrometroEntrada);
-                    cmd.Parameters.AddWithValue("@HidrometroSaida", msg.HidrometroSaida);
+                    cmd.Parameters.AddWithValue("@LeituraMedidorInferior", msg.LeituraMedidorInferior);
+                    cmd.Parameters.AddWithValue("@LeituraMedidorSuperior", msg.LeituraMedidorSuperior);
                     cmd.Parameters.AddWithValue("@StatusBomba1", msg.StatusBomba1);
                     cmd.Parameters.AddWithValue("@StatusBomba2", msg.StatusBomba2);
                     cmd.Parameters.AddWithValue("@StatusFalhaBomba1", msg.StatusFalhaBomba1);
@@ -286,7 +300,7 @@ namespace IotEdgeModuloCentral.Helpers
 
                     Util.Log.Log($"[DatabaseHelper.AddMessage] cmd.CommandText = {cmd.CommandText} ");
 
-                    ExecuteNonQuery(cmd);
+                    var result = ExecuteNonQuery(cmd);
                 }
             }
             catch (Exception ex)
@@ -347,8 +361,9 @@ namespace IotEdgeModuloCentral.Helpers
                 {
                     using (var cmd = new SQLiteCommand())
                     {
-                        cmd.CommandText = "SELECT vazaoSaida - vazaoEntrada FROM Central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
+                        cmd.CommandText = "SELECT (LeituraMedidorSuperior - LeituraMedidorInferior) vazao24horas  " +
+                                          "  FROM Central " +
+                                          " WHERE PublicacaoModBus >= datetime('now', '-1 day')";
 
                         dt = ExecuteCommand(cmd);
                         if(dt!=null)
@@ -363,6 +378,7 @@ namespace IotEdgeModuloCentral.Helpers
                 }
                 return valor;
             }
+
             public static int ObterConsumoTotalUltimaHora()
             {
                 int valor = 0;
@@ -371,22 +387,24 @@ namespace IotEdgeModuloCentral.Helpers
                 {
                     using (var cmd = new SQLiteCommand())
                     {
-                        cmd.CommandText = "SELECT vazaoSaida - vazaoEntrada FROM central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
+                        cmd.CommandText = "SELECT (LeituraMedidorSuperior - LeituraMedidorInferior) vazao24horas " +
+                                          "  FROM Central " +
+                                          " WHERE PublicacaoModBus >= datetime('now', '-1 hour')";
 
                         dt = ExecuteCommand(cmd);
                         if (dt != null)
                             valor = int.Parse(dt.Rows[0][0].ToString());
 
-                        Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] cmd.CommandText = {cmd.CommandText} ");
+                        Util.Log.Log($"[DatabaseHelper.ObterConsumoTotalUltimaHora] cmd.CommandText = {cmd.CommandText} ");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] - Erro: {ex}");
+                    Util.Log.Log($"[DatabaseHelper.ObterConsumoTotalUltimaHora] - Erro: {ex}");
                 }
                 return valor;
             }
+            
             public static int ObterQuantidadeAcionamentoEm24Horas()
             {
                 int valor = 0;
@@ -395,19 +413,20 @@ namespace IotEdgeModuloCentral.Helpers
                 {
                     using (var cmd = new SQLiteCommand())
                     {
-                        cmd.CommandText = "SELECT PublicacaoModBus FROM central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
+                        cmd.CommandText = "SELECT count(*) total " +
+                                          "  FROM Central " +
+                                          " WHERE PublicacaoModBus >= datetime('now', '-1 day')";
 
                         dt = ExecuteCommand(cmd);
                         if (dt != null)
                             valor = int.Parse(dt.Rows[0][0].ToString());
 
-                        Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] cmd.CommandText = {cmd.CommandText} ");
+                        Util.Log.Log($"[DatabaseHelper.ObterQuantidadeAcionamentoEm24Horas] cmd.CommandText = {cmd.CommandText} ");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] - Erro: {ex}");
+                    Util.Log.Log($"[DatabaseHelper.ObterQuantidadeAcionamentoEm24Horas] - Erro: {ex}");
                 }
                 return valor;
             }
@@ -419,8 +438,9 @@ namespace IotEdgeModuloCentral.Helpers
                 {
                     using (var cmd = new SQLiteCommand())
                     {
-                        cmd.CommandText = "SELECT PublicacaoModBus FROM central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
+                        cmd.CommandText = "SELECT count(*) total " +
+                                          "  FROM Central " +
+                                          " WHERE PublicacaoModBus >= datetime('now', '-30 day')";
 
                         dt = ExecuteCommand(cmd);
                         if (dt != null)
@@ -467,8 +487,9 @@ namespace IotEdgeModuloCentral.Helpers
                 {
                     using (var cmd = new SQLiteCommand())
                     {
-                        cmd.CommandText = "SELECT PublicacaoModBus FROM central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
+                        cmd.CommandText = "SELECT (LeituraMedidorSuperior - LeituraMedidorInferior) vazao30dias " +
+                                          "  FROM Central " +
+                                          " WHERE PublicacaoModBus >= datetime('now', '-30 day')";
 
                         dt = ExecuteCommand(cmd);
                         if (dt != null)
@@ -491,8 +512,9 @@ namespace IotEdgeModuloCentral.Helpers
                 {
                     using (var cmd = new SQLiteCommand())
                     {
-                        cmd.CommandText = "SELECT PublicacaoModBus FROM central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
+                        cmd.CommandText = "SELECT (LeituraMedidorSuperior - LeituraMedidorInferior) vazao24horas " +
+                                          "  FROM Central " +
+                                          " WHERE PublicacaoModBus >= datetime('now', '-1 day')";
 
                         dt = ExecuteCommand(cmd);
                         if (dt != null)
@@ -515,8 +537,9 @@ namespace IotEdgeModuloCentral.Helpers
                 {
                     using (var cmd = new SQLiteCommand())
                     {
-                        cmd.CommandText = "SELECT PublicacaoModBus FROM central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
+                        cmd.CommandText = "SELECT (LeituraMedidorSuperior - LeituraMedidorInferior) vazao1hora " +
+                                          "  FROM Central " +
+                                          " WHERE PublicacaoModBus >= datetime('now', '-1 hour')";
 
                         dt = ExecuteCommand(cmd);
                         if (dt != null)
@@ -531,29 +554,23 @@ namespace IotEdgeModuloCentral.Helpers
                 }
                 return valor;
             }
-            public static int ObterMetaConsumoMensal()
+
+            public static DataTable ObterParametros()
             {
-                int valor = 0;
-                DataTable dt = new DataTable();
+                DataTable dt = null;
                 try
                 {
-                    using (var cmd = new SQLiteCommand())
+                    using (var cmd = new SQLiteCommand("SELECT * FROM Parametros"))
                     {
-                        cmd.CommandText = "SELECT PublicacaoModBus FROM central " +
-                                          "WHERE PublicacaoModBus >= datetime('now', '-100 day')";
-
                         dt = ExecuteCommand(cmd);
-                        if (dt != null)
-                            valor = int.Parse(dt.Rows[0][0].ToString());
-
-                        Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] cmd.CommandText = {cmd.CommandText} ");
+                        Util.Log.Log($"[DatabaseHelper.GetAllMessage] cmd.CommandText = {cmd.CommandText} ");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Util.Log.Log($"[DatabaseHelper.ObterConsumoTotal24Horas] - Erro: {ex}");
+                    Util.Log.Log($"[DatabaseHelper.GetAllMessage] - Erro: {ex}");
                 }
-                return valor;
+                return dt;
             }
         }
 

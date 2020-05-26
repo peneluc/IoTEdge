@@ -44,10 +44,10 @@ namespace IotEdgeModuloCentral.Tipos
         public DateTime PublicacaoCentral { get; set; }
 
         //dados sensores
-        public int AcionamentoBomba1 { get; set; }
-        public int AcionamentoBomba2 { get; set; }
-        public int HidrometroEntrada { get; set; }
-        public int HidrometroSaida { get; set; }
+        public bool AcionamentoBomba1 { get; set; }
+        public bool AcionamentoBomba2 { get; set; }
+        public int LeituraMedidorInferior { get; set; }
+        public int LeituraMedidorSuperior { get; set; }
         public bool StatusBomba1 { get; set; }
         public bool StatusBomba2 { get; set; }
         public bool StatusFalhaBomba1 { get; set; }
@@ -76,5 +76,13 @@ namespace IotEdgeModuloCentral.Tipos
         public int MetaConsumo { get; set; }
         public int PercentualMetaConsumo { get; set; }
         public int TipoConsumidor { get; set; }
+        public int NivelReservatorioSuperior { get; internal set; }
+        public int NivelReservatorioInferior { get; internal set; }
+        public object VazaoHoraReservatorioSuperior { get; internal set; }
+        public int VazaoHoraReservatorioInferior { get; internal set; }
+        public int ConsumoDiaReservatorioSuperior { get; internal set; }
+        public int ConsumoDiaReservatorioInferior { get; internal set; }
+        public int ConsumoMesReservatorioSuperior { get; internal set; }
+        public int ConsumoMesReservatorioInferior { get; internal set; }
     }
 }

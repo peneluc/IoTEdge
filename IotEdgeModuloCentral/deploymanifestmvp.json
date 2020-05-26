@@ -110,7 +110,7 @@
                           "UnitId": "1",
                           "StartAddress": "10002",
                           "Count": "1",
-                          "DisplayName": "HidrometroSaida"
+                          "DisplayName": "LeituraMedidorSuperior"
                         },
                         "Op02": {
                           "PollingInterval": "5000",
@@ -138,7 +138,7 @@
                           "UnitId": "1",
                           "StartAddress": "10001",
                           "Count": "1",
-                          "DisplayName": "HidrometroEntrada"
+                          "DisplayName": "LeituraMedidorInferior"
                         },
                         "Op06": {
                           "PollingInterval": "5000",
